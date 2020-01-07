@@ -1,10 +1,14 @@
+/* Program prints a tree depending on user input, sample has 56 leaves */
+/* Simon Ibssa */
+
 #include <stdio.h>
 #include <string.h>
 
+
+/* Max length of stars is 19, because we can't exceed 10 lines of asterisks */
 #define MAX_STAR_LENGTH 19
 #define STEP 2
-/* Program prints a tree depending on user input, sample has 56 leaves */
-/* Simon Ibssa */
+
 
 void printBase();
 char* printMyTreeTop(int i, char ast, char* asterisks);
@@ -25,7 +29,7 @@ int main() {
     int row = 1;
 
     
-    /* Code to print top of tree */
+    /* Iterate through number of leaves to print asterisks. Represents the top of the tree */
     i = 1;
     while(i <= leaves && row<=10) {
       printf("%*s",20 + (i - row), printMyTreeTop(i, ast, asterisks));
@@ -36,7 +40,7 @@ int main() {
 
 
     
-    /* Code to print base of tree */
+    /* Function to print remaining three asterisks for base */
     printBase();
     return 0;
 }
