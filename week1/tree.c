@@ -12,7 +12,7 @@ int main() {
     printf("This program creates a christmas tree\n");
     int leaves;
     int i;
-    char asterisks[MAX_STAR_LENGTH] = "";
+    char asterisks[MAX_STAR_LENGTH + 1] = "";
     printf("Enter how many leaves for tree: ");
     scanf("%d", &leaves);
 
