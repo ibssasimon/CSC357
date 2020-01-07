@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #define STEP 2
 /* Program prints a tree depending on user input, sample has 56 leaves */
 /* Simon Ibssa */
@@ -24,33 +25,35 @@ int main() {
     /* Code to print top of tree */
     i = 1;
     while(i <= leaves && row<=10) {
-      printf("%*s",20 - (i-row), printMyTreeTop(i, ast));
+      printf("%*s",20 + (i - row), printMyTreeTop(i, ast));
       leaves-= i;
       i+=2;
       row++;
     }
-    printf("\n");
+
+
+    
     /* Code to print base of tree */
     printBase();
     return 0;
 }
 
 void printBase() {
-  printf("%22s", "*\n");
-  printf("%22s", "*\n");
-  printf("%22s", "*\n");
+  int i;
+  for(i = 0; i < 3; i++) {
+    printf("%20s", "*\n");
+  }
   return;
-
 }
 
 char* printMyTreeTop(int i, char ast) {
   char asterisks[i+1];
   int j;
+
   for(j = 0; j < i; j++) {
     asterisks[j] = '*';
   }
-  asterisks[j+1] = '\0';
-  printf("%s", asterisks);
-  printf("\n");
+  strcat(asterisks, "\n");
   return asterisks;
+
 }
