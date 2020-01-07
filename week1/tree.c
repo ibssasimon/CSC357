@@ -1,15 +1,18 @@
 #include <stdio.h>
 #include <string.h>
+
+#define MAX_STAR_LENGTH 19
 #define STEP 2
 /* Program prints a tree depending on user input, sample has 56 leaves */
 /* Simon Ibssa */
 
 void printBase();
-char* printMyTreeTop(int i, char ast);
+char* printMyTreeTop(int i, char ast, char* asterisks);
 int main() {
     printf("This program creates a christmas tree\n");
     int leaves;
     int i;
+    char asterisks[MAX_STAR_LENGTH] = "";
     printf("Enter how many leaves for tree: ");
     scanf("%d", &leaves);
 
@@ -25,7 +28,7 @@ int main() {
     /* Code to print top of tree */
     i = 1;
     while(i <= leaves && row<=10) {
-      printf("%*s",20 + (i - row), printMyTreeTop(i, ast));
+      printf("%*s",20 + (i - row), printMyTreeTop(i, ast, asterisks));
       leaves-= i;
       i+=2;
       row++;
@@ -46,8 +49,7 @@ void printBase() {
   return;
 }
 
-char* printMyTreeTop(int i, char ast) {
-  char asterisks[i+1];
+char* printMyTreeTop(int i, char ast, char* asterisks) {
   int j;
 
   for(j = 0; j < i; j++) {
