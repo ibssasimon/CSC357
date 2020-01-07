@@ -3,9 +3,11 @@
 /* Program prints a tree depending on user input, sample has 56 leaves */
 /* Simon Ibssa */
 
+void printBase();
 int main() {
     printf("This program creates a christmas tree\n");
     int leaves;
+    int i;
     printf("Enter how many leaves for tree: ");
     scanf("%d", &leaves);
 
@@ -14,17 +16,16 @@ int main() {
     int base = 3;
     leaves -= 3;
     printf("leaves: %d\n", leaves);
-    char treeleaf = '*';
+    char ast = '*';
 
     /* Code to print top of tree */
-    printf("%20c\n", treeleaf);
-    printf("%20s\n", "***");
-
+    
 
     /* Code to print base of tree */
+    printBase();
     return 0;
 }
 
-void printBase(int n) {
-
+void printBase() {
+    printf("*\n\n*\n\n*\n");
 }
