@@ -28,6 +28,8 @@ struct tagBITMAPINFOHEADER {
 
 int main(int argc, char *argv[]) {
   printf("%d\n", argc);
-  
+  FILE *file = fopen("jar.bmp","rb");
+  if(file!=NULL)printf("success!\n");
+  fclose(file);
   return 0;
 }
