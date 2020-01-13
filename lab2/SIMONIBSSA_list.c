@@ -1,7 +1,6 @@
 #include <stdio.h>
-
-// function declarations
-int getInput();
+#include <string.h>
+#include <stdlib.h>
 
 // Defining listelement struct
 typedef struct listelement listelement;
@@ -9,14 +8,24 @@ typedef struct listelement listelement;
   listelement *next, *prev;
   char text[1000];
 };
-int main() {
-  //Initializing double linked list
 
+// function declarations
+int getInput();
+void insertString(char* string);
+
+//Initializing global double linked list
+listelement *head = NULL;
+
+int main() {
 
   int userData;
+  char input[1000];
   while((userData = getInput()) != 4) {
     if(userData == 1) {
-      printf("I'm going to push a string\n");
+      printf("insert text\n");
+      scanf("%s", input);
+      insertString(input);
+      printf("done push string\n\n");
     } else if(userData == 2) {
       printf("I'm going to print a list\n");
     } else if(userData == 3) {
@@ -39,3 +48,23 @@ int getInput() {
   scanf("%d", &input);
   return input;
 }
+
+void insertString(char* string) {
+  listelement* newNode = NULL;
+  newNode = (listelement*)malloc(sizeof(listelement));
+  strcpy(newNode ->text, string);
+
+  if(head == NULL) {
+    head = newNode;
+    head -> next = NULL;
+    head -> prev = NULL;
+  } else {
+    listelement* p = head;
+    for(;p -> next != 0; p = p-> next) {
+      p-> next = newNode;
+      newNode -> prev = p;
+      newNode -> next = 0;
+    }
+  }
+}
+
