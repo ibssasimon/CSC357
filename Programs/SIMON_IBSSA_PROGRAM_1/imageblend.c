@@ -31,5 +31,8 @@ int main(int argc, char *argv[]) {
   FILE *file = fopen("jar.bmp","rb");
   if(file!=NULL)printf("success!\n");
   fclose(file);
+
+  // first two bits are 'BM', indicating it is a bitmap file
+  // offset for start of BMP file data is 36. So we can find start of data at 0x36
   return 0;
 }
