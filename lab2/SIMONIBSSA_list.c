@@ -1,3 +1,5 @@
+// Simon Ibssa CPE 357 Lab 2 
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,13 +18,13 @@ void insertString(char* string);
 void printList();
 void removeString(int i);
 void exitProgram();
-
 listelement* get(int i);
 int getSize();
 
 //Initializing global double linked list
 listelement *head = NULL;
 
+// loop through user input, and manipulate list based on data
 int main() {
 
   int userData;
@@ -49,6 +51,7 @@ int main() {
   return 0;
 }
 
+// helper function to get user input 
 int getInput() {
   // Function gets user input and determines next step of program
   int input;
@@ -61,6 +64,7 @@ int getInput() {
   return input;
 }
 
+// insert string into list
 void insertString(char* string) {
   listelement* newNode = NULL;
   newNode = (listelement*)malloc(sizeof(listelement));
@@ -81,6 +85,7 @@ void insertString(char* string) {
   }
 }
 
+// prints list
 void printList() {
   if(head == NULL) {
     printf("Empty list.\n");
@@ -88,8 +93,11 @@ void printList() {
   for(listelement* p = head; p!= 0; p = p->next) {
     printf("%s\n", p->text);
   }
+  printf("\n");
 }
 
+
+// helper function to remove strings from list
 void removeString(int i) {
   listelement *p = get(i);
   if(p != NULL) {
@@ -112,6 +120,7 @@ void removeString(int i) {
   }
 }
 
+// function removes all strings in list for purpose of exiting program
 void exitProgram() {
   int i;
   for(i = getSize(); i >= 1; i--) {
@@ -119,6 +128,8 @@ void exitProgram() {
   }
 }
 
+
+// helper function to return the address of a list element by index
 listelement* get(int i) {
   int j;
   if(i == 0) {
@@ -138,6 +149,8 @@ listelement* get(int i) {
   }
 }
 
+
+// helper function to return size of list
 int getSize() {
   int i;
   for(listelement* p = head; p!= 0; p = p->next) {
@@ -145,4 +158,3 @@ int getSize() {
   }
   return i -1;
 }
-
