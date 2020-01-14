@@ -15,7 +15,10 @@ int getInput();
 void insertString(char* string);
 void printList();
 void removeString(int i);
+void exitProgram();
+
 listelement* get(int i);
+int getSize();
 
 //Initializing global double linked list
 listelement *head = NULL;
@@ -42,6 +45,7 @@ int main() {
       return 0;
     }
   }
+  exitProgram();
   return 0;
 }
 
@@ -108,6 +112,12 @@ void removeString(int i) {
   }
 }
 
+void exitProgram() {
+  int i;
+  for(i = getSize(); i >= 1; i--) {
+    removeString(i);
+  }
+}
 
 listelement* get(int i) {
   int j;
@@ -126,5 +136,13 @@ listelement* get(int i) {
     printf("This list does not support that. \n");
     return NULL;
   }
+}
+
+int getSize() {
+  int i;
+  for(listelement* p = head; p!= 0; p = p->next) {
+    i++;
+  }
+  return i -1;
 }
 
