@@ -14,6 +14,8 @@ typedef struct listelement listelement;
 int getInput();
 void insertString(char* string);
 void printList();
+void removeString(int i);
+listelement* get(int i);
 
 //Initializing global double linked list
 listelement *head = NULL;
@@ -22,6 +24,7 @@ int main() {
 
   int userData;
   char input[1000];
+  int rm;
   while((userData = getInput()) != 4) {
     if(userData == 1) {
       printf("insert text\n");
@@ -32,7 +35,9 @@ int main() {
     } else if(userData == 2) {
       printList();
     } else if(userData == 3) {
-      printf("I'm going to delete an item\n");
+      printf("which element do you want to remove?\n");
+      scanf("%d", &rm);
+      removeString(rm);
     } else if(userData < 0 || userData > 4) {
       return 0;
     }
@@ -73,8 +78,53 @@ void insertString(char* string) {
 }
 
 void printList() {
+  if(head == NULL) {
+    printf("Empty list.\n");
+  }
   for(listelement* p = head; p!= 0; p = p->next) {
     printf("%s\n", p->text);
+  }
+}
+
+void removeString(int i) {
+  listelement *p = get(i);
+  if(p != NULL) {
+    
+    if(p == head) {
+      head = head -> next;
+      free(p);
+      if(head != NULL) {
+        head -> prev = NULL;
+      }
+    } else {
+      p -> prev -> next = p -> next;
+      if(p -> next != NULL) {
+        p -> next -> prev = p -> prev;
+        free(p);
+      }
+    }
+  } else {
+    printf("Cannot remove item.\n");
+  }
+}
+
+
+listelement* get(int i) {
+  int j;
+  if(i == 0) {
+    printf("This list does not support that.\n");
+    return NULL;
+  } else if(i == 1) {
+    return head;
+  } else if (i > 1 && i > 0) {
+    listelement* p = head;
+    for(j = 0; j < i-1; j++) {
+      p = p -> next;
+    }
+    return p;
+  } else {
+    printf("This list does not support that. \n");
+    return NULL;
   }
 }
 
