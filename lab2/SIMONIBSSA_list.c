@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 // Defining listelement struct
 typedef struct listelement listelement;
@@ -12,6 +13,7 @@ typedef struct listelement listelement;
 // function declarations
 int getInput();
 void insertString(char* string);
+void printList();
 
 //Initializing global double linked list
 listelement *head = NULL;
@@ -25,9 +27,10 @@ int main() {
       printf("insert text\n");
       scanf("%s", input);
       insertString(input);
+      memset(input, '\0', sizeof input);
       printf("done push string\n\n");
     } else if(userData == 2) {
-      printf("I'm going to print a list\n");
+      printList();
     } else if(userData == 3) {
       printf("I'm going to delete an item\n");
     } else if(userData < 0 || userData > 4) {
@@ -60,11 +63,18 @@ void insertString(char* string) {
     head -> prev = NULL;
   } else {
     listelement* p = head;
-    for(;p -> next != 0; p = p-> next) {
-      p-> next = newNode;
-      newNode -> prev = p;
-      newNode -> next = 0;
+    while(p != 0 && p-> next != 0) {
+      p = p -> next;
     }
+    p-> next = newNode;
+    newNode -> prev = p;
+    newNode -> next = 0;
+  }
+}
+
+void printList() {
+  for(listelement* p = head; p!= 0; p = p->next) {
+    printf("%s\n", p->text);
   }
 }
 
