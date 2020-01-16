@@ -29,7 +29,7 @@ typedef struct tagBITMAPINFOHEADER {
 int main(int argc, char *argv[]) {
   printf("%d\n", argc);
   unsigned char* bmImageData;
-  FILE *file = fopen(argv[1],"rb");
+  FILE *file = fopen("lion.bmp","rb");
   tagBITMAPFILEHEADER fileHeader;
   tagBITMAPINFOHEADER infoHeader;
 
@@ -47,6 +47,10 @@ int main(int argc, char *argv[]) {
 
 
   fread(&infoHeader, 1, sizeof(infoHeader), file);
+
+  unsigned char* imageData = (unsigned char*)malloc(infoHeader.biSizeImage);
+  fread(imageData, 1, infoHeader.biSizeImage, file);
+  fclose(file);
 
   // TODO: check to see if BMP file by checking first two bytes
   
