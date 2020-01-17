@@ -124,8 +124,7 @@ int main(int argc, char *argv[]) {
       unsigned char r2 = getColor(imageData, infoHeader.biWidth, x, y, 2);
       finalImageData[(x * 3)  + bytesPerLine + 2] = r2;*/
 
-      // Blend image
-
+      // Blend image - use ratio to manipulate original pixels
       // assign into final image data
 
 
