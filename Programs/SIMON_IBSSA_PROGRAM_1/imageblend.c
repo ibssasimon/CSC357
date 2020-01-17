@@ -35,7 +35,7 @@ tagBITMAPINFOHEADER infoHeader;
 tagBITMAPINFOHEADER infoHeader2;
 
 // function declarations
-unsigned char * getColor(unsigned char* imageData, int width, int x, int y, int color);
+unsigned char getColor(unsigned char* imageData, int width, int x, int y, int color);
 
 int main(int argc, char *argv[]) {
   printf("%d\n", argc);
@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
 
 
   // read file header data for image 1
-  fread(&fileHeader.bfType, 2, sizeof(fileHeader.bfType),  file);
+  fread(&fileHeader.bfType, 1, sizeof(fileHeader.bfType),  file);
   fread(&fileHeader.bfSize, 1, sizeof(fileHeader.bfSize), file);
   fread(&fileHeader.bfReserved1, 1, sizeof(fileHeader.bfReserved1), file);
   fread(&fileHeader.bfReserved2, 1, sizeof(fileHeader.bfReserved2), file);
@@ -75,6 +75,7 @@ int main(int argc, char *argv[]) {
 
   //fseek(file, fileHeader.bfOffBits, SEEK_SET);
   unsigned char* imageData = (unsigned char*)malloc(infoHeader.biSizeImage);
+  unsigned char* finalImageData = (unsigned char*)malloc(infoHeader.biSizeImage);
   fread(imageData, 1, infoHeader.biSizeImage, file);
   fclose(file);
   //fclose(file2);
@@ -90,9 +91,36 @@ int main(int argc, char *argv[]) {
   }*/
 
 
+
+  unsigned int index = 0;
+  for(y = 0; y < infoHeader.biHeight; y++) {
+
+    int bytesPerLine = y * infoHeader.biWidth * 3;
+    if(bytesPerLine % 4 != 0) {
+      bytesPerLine = bytesPerLine + (4 - (bytesPerLine % 4));
+    }
+
+    for(x = 0; x < infoHeader.biWidth; x++) {
+
+      
+      // TODO: insert correct getColumn invocation here
+      unsigned char b1 = getColor(imageData, infoHeader.biWidth, x, y, 0);
+
+      finalImageData[(x * 3)  + bytesPerLine + 0] = b1;
+
+      unsigned char g1 = getColor(imageData, infoHeader.biWidth, x, y, 1);
+      finalImageData[(x * 3)  + bytesPerLine + 1] = 0;
+
+      unsigned char r1 = getColor(imageData, infoHeader.biWidth, x, y, 2);
+      finalImageData[(x * 3)  + bytesPerLine + 2] = r1;
+
+    }
+
+  }
+
   // allocate result image mem
   file = fopen("resultimage.bmp", "wb+");
-  fwrite(&fileHeader.bfType, 2, sizeof(fileHeader.bfType),  file);
+  fwrite(&fileHeader.bfType, 1, sizeof(fileHeader.bfType),  file);
   fwrite(&fileHeader.bfSize, 1, sizeof(fileHeader.bfSize), file);
   fwrite(&fileHeader.bfReserved1, 1, sizeof(fileHeader.bfReserved1), file);
   fwrite(&fileHeader.bfReserved2, 1, sizeof(fileHeader.bfReserved2), file);
@@ -101,33 +129,29 @@ int main(int argc, char *argv[]) {
 
   fwrite(&infoHeader, 1, sizeof(tagBITMAPINFOHEADER), file);
 
-  fwrite(imageData, infoHeader.biSizeImage, 1, file);
-  fclose(file);
-
-
-  /*for(y = 0; y < infoHeader.biHeight; y++) {
-
-    for(x = 0; x < infoHeader.biWidth; x++) {
-      // TODO: insert correct getColumn invocation here
-      imageData = getColor(imageData, infoHeader.biWidth, x, y, 2);
-    }
-
-  }*/
   
 
+
+  fwrite(finalImageData, infoHeader.biSizeImage, 1, file);
+  fclose(file);
+
+  
+  
   return 0;
 }
 
 
 
 // function to manipulate image data
-unsigned char * getColor(unsigned char* imageData, int width, int x, int y, int color) {
+unsigned char getColor(unsigned char* imageData, int width, int x, int y, int color) {
   int bytesPerLine = y * infoHeader.biWidth * 3;
   if(bytesPerLine % 4 != 0) {
     bytesPerLine = bytesPerLine + (4 - (bytesPerLine % 4));
   }
 
-  imageData[(x * 3)  + bytesPerLine + color] = 0;
-  return imageData;
+ // return imageData[(x * 3)  + bytesPerLine*y + (width* 3 * y) + color] = color;
+  //finalImageData[(x*3) + bytesPerLine] = imageData[(x * 3)  + bytesPerLine + color];
+  //finalImageData[(x*3) + bytesPerLine + 1] = imageData[(x * 3)  + bytesPerLine + 1];
+  return imageData[(x * 3)  + bytesPerLine + color];
 
 }
