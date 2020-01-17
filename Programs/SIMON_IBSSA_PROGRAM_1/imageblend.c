@@ -82,13 +82,13 @@ int main(int argc, char *argv[]) {
 
   // check size of infoHeader's image size for both files before looping
 
-  /*if(infoHeader.biSizeImage >= infoHeader2.biSizeImage) {
+  if(infoHeader.biSizeImage >= infoHeader2.biSizeImage) {
     tagBITMAPINFOHEADER bigger = infoHeader;
     tagBITMAPINFOHEADER smaller = infoHeader2;
   } else {
     tagBITMAPINFOHEADER bigger = infoHeader2;
     tagBITMAPINFOHEADER smaller = infoHeader;
-  }*/
+  }
 
 
 
@@ -113,6 +113,21 @@ int main(int argc, char *argv[]) {
 
       unsigned char r1 = getColor(imageData, infoHeader.biWidth, x, y, 2);
       finalImageData[(x * 3)  + bytesPerLine + 2] = r1;
+
+      /* UPDATE SECOND IMAGEunsigned char b2 = getColor(imageData, infoHeader.biWidth, x, y, 0);
+
+      finalImageData[(x * 3)  + bytesPerLine + 0] = b2;
+
+      unsigned char g2 = getColor(imageData, infoHeader.biWidth, x, y, 1);
+      finalImageData[(x * 3)  + bytesPerLine + 1] = 0;
+
+      unsigned char r2 = getColor(imageData, infoHeader.biWidth, x, y, 2);
+      finalImageData[(x * 3)  + bytesPerLine + 2] = r2;*/
+
+      // Blend image
+
+      // assign into final image data
+
 
     }
 
