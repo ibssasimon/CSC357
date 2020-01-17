@@ -28,12 +28,17 @@ typedef struct tagBITMAPINFOHEADER {
 } tagBITMAPINFOHEADER;
 
 
+// global vars
+tagBITMAPFILEHEADER fileHeader;
+tagBITMAPINFOHEADER infoHeader;
+
 int main(int argc, char *argv[]) {
   printf("%d\n", argc);
   unsigned char* bmImageData;
   FILE *file = fopen("lion.bmp","rb");
-  tagBITMAPFILEHEADER fileHeader;
-  tagBITMAPINFOHEADER infoHeader;
+  
+  int x;
+  int y;
 
   // null pointer check
   if(file == NULL) {
@@ -57,10 +62,37 @@ int main(int argc, char *argv[]) {
   fread(&imageData, 1, infoHeader.biSizeImage, file);
   fclose(file);
 
-  
-  fclose(file);
+  file = fopen("resultimage.bmp", "wb+");
+  fwrite(&fileHeader.bfType,1, 2,  file);
+  fwrite(&fileHeader.bfSize, 1, 4, file);
+  fwrite(&fileHeader.bfReserved1, 1, 2, file);
+  fwrite(&fileHeader.bfReserved2, 1, 2, file);
+  fwrite(&fileHeader.bfOffBits, 1, 4, file);
 
-  // first two bits are 'BM', indicating it is a bitmap file indicated by 
-  // offset for start of BMP file data is 36. So we can find start of data at 0x36
+  
+  for(y = 0; y < infoHeader.biHeight; y++) {
+
+    for(x = 0; x < infoHeader.biWidth; x++) {
+      // TODO: insert correct getColumn invocation here
+
+
+    }
+
+  }
+
   return 0;
+}
+
+
+
+// function to manipulate image data
+unsigned char * getColumn(unsigned char* imageData, int width, int x, int y, int color) {
+  int bytesPerLine = y * infoHeader.biWidth * 3;
+  if(bytesPerLine % 4 != 0) {
+    bytesPerLine = bytesPerLine + (4 - (bytesPerLine % 4));
+  }
+
+  imageData[(x * 3)  + bytesPerLine + color] = 0;
+  return imageData;
+
 }
