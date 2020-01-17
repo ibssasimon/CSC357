@@ -30,12 +30,17 @@ typedef struct tagBITMAPINFOHEADER {
 
 // global vars
 tagBITMAPFILEHEADER fileHeader;
+tagBITMAPFILEHEADER fileHeader2;
 tagBITMAPINFOHEADER infoHeader;
+tagBITMAPINFOHEADER infoHeader2;
+
+// function declarations
+unsigned char * getColor(unsigned char* imageData, int width, int x, int y, int color);
 
 int main(int argc, char *argv[]) {
   printf("%d\n", argc);
-  unsigned char* bmImageData;
   FILE *file = fopen("lion.bmp","rb");
+  //FILE *file2 = fopen("flowers.bmp", "rb");
   
   int x;
   int y;
@@ -48,37 +53,67 @@ int main(int argc, char *argv[]) {
   // TODO: check to see if BMP file by checking first two bytes
 
 
-  // read file header data
-  fread(&fileHeader.bfType,1, 2,  file);
-  fread(&fileHeader.bfSize, 1, 4, file);
-  fread(&fileHeader.bfReserved1, 1, 2, file);
-  fread(&fileHeader.bfReserved2, 1, 2, file);
-  fread(&fileHeader.bfOffBits, 1, 4, file);
+  // read file header data for image 1
+  fread(&fileHeader.bfType, 2, sizeof(fileHeader.bfType),  file);
+  fread(&fileHeader.bfSize, 1, sizeof(fileHeader.bfSize), file);
+  fread(&fileHeader.bfReserved1, 1, sizeof(fileHeader.bfReserved1), file);
+  fread(&fileHeader.bfReserved2, 1, sizeof(fileHeader.bfReserved2), file);
+  fread(&fileHeader.bfOffBits, 1, sizeof(fileHeader.bfOffBits), file);
+
+  // read file header data for image 2
+  //fread(&fileHeader2.bfType, 2, sizeof(fileHeader2.bfType),  file2);
+  //fread(&fileHeader2.bfSize, 1, sizeof(fileHeader2.bfSize), file2);
+  //fread(&fileHeader2.bfReserved1, 1, sizeof(fileHeader2.bfReserved1), file2);
+  //fread(&fileHeader2.bfReserved2, 1, sizeof(fileHeader2.bfReserved2), file2);
+  //fread(&fileHeader2.bfOffBits, 1, sizeof(fileHeader2.bfOffBits), file2);
 
 
-  fread(&infoHeader, 1, sizeof(infoHeader), file);
+  // read image header data for both images
+  fread(&infoHeader, 1, sizeof(tagBITMAPINFOHEADER), file);
+  //fread(&infoHeader2, 1, sizeof(infoHeader), file2);
 
+
+  //fseek(file, fileHeader.bfOffBits, SEEK_SET);
   unsigned char* imageData = (unsigned char*)malloc(infoHeader.biSizeImage);
-  fread(&imageData, 1, infoHeader.biSizeImage, file);
+  fread(imageData, 1, infoHeader.biSizeImage, file);
+  fclose(file);
+  //fclose(file2);
+
+  // check size of infoHeader's image size for both files before looping
+
+  /*if(infoHeader.biSizeImage >= infoHeader2.biSizeImage) {
+    tagBITMAPINFOHEADER bigger = infoHeader;
+    tagBITMAPINFOHEADER smaller = infoHeader2;
+  } else {
+    tagBITMAPINFOHEADER bigger = infoHeader2;
+    tagBITMAPINFOHEADER smaller = infoHeader;
+  }*/
+
+
+  // allocate result image mem
+  file = fopen("resultimage.bmp", "wb+");
+  fwrite(&fileHeader.bfType, 2, sizeof(fileHeader.bfType),  file);
+  fwrite(&fileHeader.bfSize, 1, sizeof(fileHeader.bfSize), file);
+  fwrite(&fileHeader.bfReserved1, 1, sizeof(fileHeader.bfReserved1), file);
+  fwrite(&fileHeader.bfReserved2, 1, sizeof(fileHeader.bfReserved2), file);
+  fwrite(&fileHeader.bfOffBits, 1, sizeof(fileHeader.bfOffBits), file);
+
+
+  fwrite(&infoHeader, 1, sizeof(tagBITMAPINFOHEADER), file);
+
+  fwrite(imageData, infoHeader.biSizeImage, 1, file);
   fclose(file);
 
-  file = fopen("resultimage.bmp", "wb+");
-  fwrite(&fileHeader.bfType,1, 2,  file);
-  fwrite(&fileHeader.bfSize, 1, 4, file);
-  fwrite(&fileHeader.bfReserved1, 1, 2, file);
-  fwrite(&fileHeader.bfReserved2, 1, 2, file);
-  fwrite(&fileHeader.bfOffBits, 1, 4, file);
 
-  
-  for(y = 0; y < infoHeader.biHeight; y++) {
+  /*for(y = 0; y < infoHeader.biHeight; y++) {
 
     for(x = 0; x < infoHeader.biWidth; x++) {
       // TODO: insert correct getColumn invocation here
-
-
+      imageData = getColor(imageData, infoHeader.biWidth, x, y, 2);
     }
 
-  }
+  }*/
+  
 
   return 0;
 }
@@ -86,7 +121,7 @@ int main(int argc, char *argv[]) {
 
 
 // function to manipulate image data
-unsigned char * getColumn(unsigned char* imageData, int width, int x, int y, int color) {
+unsigned char * getColor(unsigned char* imageData, int width, int x, int y, int color) {
   int bytesPerLine = y * infoHeader.biWidth * 3;
   if(bytesPerLine % 4 != 0) {
     bytesPerLine = bytesPerLine + (4 - (bytesPerLine % 4));
