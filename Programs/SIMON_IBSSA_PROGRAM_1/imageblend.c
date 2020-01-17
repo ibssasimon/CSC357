@@ -1,4 +1,6 @@
+/* Simon Ibssa, Cal Poly SLO*/
 #include <stdio.h>
+#include <stdlib.h>
 
 typedef unsigned short WORD;
 typedef unsigned int DWORD;
@@ -38,7 +40,10 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  // read file header, each are size 1 byte
+  // TODO: check to see if BMP file by checking first two bytes
+
+
+  // read file header data
   fread(&fileHeader.bfType,1, 2,  file);
   fread(&fileHeader.bfSize, 1, 4, file);
   fread(&fileHeader.bfReserved1, 1, 2, file);
@@ -49,10 +54,9 @@ int main(int argc, char *argv[]) {
   fread(&infoHeader, 1, sizeof(infoHeader), file);
 
   unsigned char* imageData = (unsigned char*)malloc(infoHeader.biSizeImage);
-  fread(imageData, 1, infoHeader.biSizeImage, file);
+  fread(&imageData, 1, infoHeader.biSizeImage, file);
   fclose(file);
 
-  // TODO: check to see if BMP file by checking first two bytes
   
   fclose(file);
 
