@@ -33,6 +33,10 @@ tagBITMAPFILEHEADER fileHeader;
 tagBITMAPFILEHEADER fileHeader2;
 tagBITMAPINFOHEADER infoHeader;
 tagBITMAPINFOHEADER infoHeader2;
+tagBITMAPFILEHEADER biggerHeader;
+
+tagBITMAPINFOHEADER bigger;
+tagBITMAPINFOHEADER smaller;
 
 // function declarations
 unsigned char getColor(unsigned char* imageData, int width, int x, int y, int color);
@@ -40,13 +44,19 @@ unsigned char getColor(unsigned char* imageData, int width, int x, int y, int co
 int main(int argc, char *argv[]) {
   printf("%d\n", argc);
   FILE *file = fopen("lion.bmp","rb");
-  //FILE *file2 = fopen("flowers.bmp", "rb");
+  FILE *file2 = fopen("flowers.bmp", "rb");
   
   int x;
   int y;
+  double ratio;
+  ratio = 0.5;
 
   // null pointer check
   if(file == NULL) {
+    return 0;
+  }
+
+  if(file2 == NULL) {
     return 0;
   }
 
@@ -61,72 +71,74 @@ int main(int argc, char *argv[]) {
   fread(&fileHeader.bfOffBits, 1, sizeof(fileHeader.bfOffBits), file);
 
   // read file header data for image 2
-  //fread(&fileHeader2.bfType, 2, sizeof(fileHeader2.bfType),  file2);
-  //fread(&fileHeader2.bfSize, 1, sizeof(fileHeader2.bfSize), file2);
-  //fread(&fileHeader2.bfReserved1, 1, sizeof(fileHeader2.bfReserved1), file2);
-  //fread(&fileHeader2.bfReserved2, 1, sizeof(fileHeader2.bfReserved2), file2);
-  //fread(&fileHeader2.bfOffBits, 1, sizeof(fileHeader2.bfOffBits), file2);
+  fread(&fileHeader2.bfType, 1, sizeof(fileHeader2.bfType),  file2);
+  fread(&fileHeader2.bfSize, 1, sizeof(fileHeader2.bfSize), file2);
+  fread(&fileHeader2.bfReserved1, 1, sizeof(fileHeader2.bfReserved1), file2);
+  fread(&fileHeader2.bfReserved2, 1, sizeof(fileHeader2.bfReserved2), file2);
+  fread(&fileHeader2.bfOffBits, 1, sizeof(fileHeader2.bfOffBits), file2);
 
 
   // read image header data for both images
   fread(&infoHeader, 1, sizeof(tagBITMAPINFOHEADER), file);
-  //fread(&infoHeader2, 1, sizeof(infoHeader), file2);
+  fread(&infoHeader2, 1, sizeof(tagBITMAPINFOHEADER), file2);
 
 
   //fseek(file, fileHeader.bfOffBits, SEEK_SET);
   unsigned char* imageData = (unsigned char*)malloc(infoHeader.biSizeImage);
+  unsigned char* imageData2 = (unsigned char*)malloc(infoHeader2.biSizeImage);
   unsigned char* finalImageData = (unsigned char*)malloc(infoHeader.biSizeImage);
+
   fread(imageData, 1, infoHeader.biSizeImage, file);
+  fread(imageData2, 1, infoHeader2.biSizeImage, file2);
+
   fclose(file);
-  //fclose(file2);
+  fclose(file2);
 
   // check size of infoHeader's image size for both files before looping
 
   if(infoHeader.biSizeImage >= infoHeader2.biSizeImage) {
-    tagBITMAPINFOHEADER bigger = infoHeader;
-    tagBITMAPINFOHEADER smaller = infoHeader2;
+    bigger = infoHeader;
+    smaller = infoHeader2;
   } else {
-    tagBITMAPINFOHEADER bigger = infoHeader2;
-    tagBITMAPINFOHEADER smaller = infoHeader;
+    bigger = infoHeader2;
+    smaller = infoHeader;
   }
 
 
 
   unsigned int index = 0;
-  for(y = 0; y < infoHeader.biHeight; y++) {
+  for(y = 0; y < bigger.biHeight; y++) {
 
     int bytesPerLine = y * infoHeader.biWidth * 3;
     if(bytesPerLine % 4 != 0) {
       bytesPerLine = bytesPerLine + (4 - (bytesPerLine % 4));
     }
 
-    for(x = 0; x < infoHeader.biWidth; x++) {
+    for(x = 0; x < bigger.biWidth; x++) {
 
       
-      // TODO: insert correct getColumn invocation here
       unsigned char b1 = getColor(imageData, infoHeader.biWidth, x, y, 0);
-
-      finalImageData[(x * 3)  + bytesPerLine + 0] = b1;
-
       unsigned char g1 = getColor(imageData, infoHeader.biWidth, x, y, 1);
-      finalImageData[(x * 3)  + bytesPerLine + 1] = 0;
-
       unsigned char r1 = getColor(imageData, infoHeader.biWidth, x, y, 2);
-      finalImageData[(x * 3)  + bytesPerLine + 2] = r1;
 
-      /* UPDATE SECOND IMAGEunsigned char b2 = getColor(imageData, infoHeader.biWidth, x, y, 0);
-
-      finalImageData[(x * 3)  + bytesPerLine + 0] = b2;
-
-      unsigned char g2 = getColor(imageData, infoHeader.biWidth, x, y, 1);
-      finalImageData[(x * 3)  + bytesPerLine + 1] = 0;
-
-      unsigned char r2 = getColor(imageData, infoHeader.biWidth, x, y, 2);
-      finalImageData[(x * 3)  + bytesPerLine + 2] = r2;*/
+      //UPDATE SECOND IMAGE
+      
+      unsigned char b2 = getColor(imageData2, infoHeader2.biWidth, x, y, 0);
+      unsigned char g2 = getColor(imageData2, infoHeader2.biWidth, x, y, 1);
+      unsigned char r2 = getColor(imageData2, infoHeader.biWidth, x, y, 2);
 
       // Blend image - use ratio to manipulate original pixels
+
+      unsigned char blue_result = (b1 * ratio) + b2*(1 - ratio);
+      unsigned char green_result = (g1 * ratio) + g2*(1 - ratio);
+      unsigned char red_result = (r1 * ratio) + r2*(1 - ratio);
+
+
       // assign into final image data
 
+      finalImageData[(x * 3)  + bytesPerLine + 0] = blue_result;
+      finalImageData[(x * 3)  + bytesPerLine + 1] = green_result;
+      finalImageData[(x * 3)  + bytesPerLine + 2] = red_result;
 
     }
 
@@ -134,17 +146,23 @@ int main(int argc, char *argv[]) {
 
   // allocate result image mem
   file = fopen("resultimage.bmp", "wb+");
-  fwrite(&fileHeader.bfType, 1, sizeof(fileHeader.bfType),  file);
-  fwrite(&fileHeader.bfSize, 1, sizeof(fileHeader.bfSize), file);
-  fwrite(&fileHeader.bfReserved1, 1, sizeof(fileHeader.bfReserved1), file);
-  fwrite(&fileHeader.bfReserved2, 1, sizeof(fileHeader.bfReserved2), file);
-  fwrite(&fileHeader.bfOffBits, 1, sizeof(fileHeader.bfOffBits), file);
+
+  if(fileHeader.bfSize > fileHeader2.bfSize) {
+    biggerHeader = fileHeader;
+    
+  } else {
+    biggerHeader = fileHeader2;
+  }
 
 
-  fwrite(&infoHeader, 1, sizeof(tagBITMAPINFOHEADER), file);
+  fwrite(&biggerHeader.bfType, 1, sizeof(fileHeader.bfType),  file);
+  fwrite(&biggerHeader.bfSize, 1, sizeof(fileHeader.bfSize), file);
+  fwrite(&biggerHeader.bfReserved1, 1, sizeof(fileHeader.bfReserved1), file);
+  fwrite(&biggerHeader.bfReserved2, 1, sizeof(fileHeader.bfReserved2), file);
+  fwrite(&biggerHeader.bfOffBits, 1, sizeof(fileHeader.bfOffBits), file);
 
-  
 
+  fwrite(&bigger, 1, sizeof(tagBITMAPINFOHEADER), file);
 
   fwrite(finalImageData, infoHeader.biSizeImage, 1, file);
   fclose(file);
