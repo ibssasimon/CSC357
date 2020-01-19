@@ -33,10 +33,10 @@ tagBITMAPFILEHEADER fileHeader;
 tagBITMAPFILEHEADER fileHeader2;
 tagBITMAPINFOHEADER infoHeader;
 tagBITMAPINFOHEADER infoHeader2;
-tagBITMAPFILEHEADER biggerHeader;
+tagBITMAPFILEHEADER biggerFHeader;
 
-tagBITMAPINFOHEADER bigger;
-tagBITMAPINFOHEADER smaller;
+tagBITMAPINFOHEADER biggerIHeader;
+tagBITMAPINFOHEADER smallerIHeader;
 
 // function declarations
 unsigned char getColor(unsigned char* imageData, int width, int x, int y, int color);
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
   int x;
   int y;
   double ratio;
-  ratio = 0.5;
+  ratio = 0.0;
 
   // null pointer check
   if(file == NULL) {
@@ -97,35 +97,41 @@ int main(int argc, char *argv[]) {
   // check size of infoHeader's image size for both files before looping
 
   if(infoHeader.biSizeImage >= infoHeader2.biSizeImage) {
-    bigger = infoHeader;
-    smaller = infoHeader2;
+    biggerIHeader = infoHeader;
+    smallerIHeader = infoHeader2;
   } else {
-    bigger = infoHeader2;
-    smaller = infoHeader;
+    biggerIHeader = infoHeader2;
+    smallerIHeader = infoHeader;
   }
 
 
 
   unsigned int index = 0;
-  for(y = 0; y < bigger.biHeight; y++) {
+  for(y = 0; y < biggerIHeader.biHeight; y++) {
 
     int bytesPerLine = y * infoHeader.biWidth * 3;
     if(bytesPerLine % 4 != 0) {
       bytesPerLine = bytesPerLine + (4 - (bytesPerLine % 4));
     }
 
-    for(x = 0; x < bigger.biWidth; x++) {
+    for(x = 0; x < biggerIHeader.biWidth; x++) {
 
+
+      // getting pixels of bigger image
       
-      unsigned char b1 = getColor(imageData, infoHeader.biWidth, x, y, 0);
-      unsigned char g1 = getColor(imageData, infoHeader.biWidth, x, y, 1);
-      unsigned char r1 = getColor(imageData, infoHeader.biWidth, x, y, 2);
+      unsigned char b1 = getColor(imageData, biggerIHeader.biWidth, x, y, 0);
+      unsigned char g1 = getColor(imageData, biggerIHeader.biWidth, x, y, 1);
+      unsigned char r1 = getColor(imageData, biggerIHeader.biWidth, x, y, 2);
 
       //UPDATE SECOND IMAGE
-      
-      unsigned char b2 = getColor(imageData2, infoHeader2.biWidth, x, y, 0);
-      unsigned char g2 = getColor(imageData2, infoHeader2.biWidth, x, y, 1);
-      unsigned char r2 = getColor(imageData2, infoHeader.biWidth, x, y, 2);
+      // getting small image coordinates and pixels
+
+      int small_x = x * (smallerIHeader.biWidth / biggerIHeader.biWidth);
+      int small_y = y * (smallerIHeader.biHeight / biggerIHeader.biHeight);
+
+      unsigned char b2 = getColor(imageData2, infoHeader2.biWidth, small_x, small_y, 0);
+      unsigned char g2 = getColor(imageData2, infoHeader2.biWidth, small_x, small_y, 1);
+      unsigned char r2 = getColor(imageData2, infoHeader.biWidth, small_x, small_y, 2);
 
       // Blend image - use ratio to manipulate original pixels
 
@@ -141,28 +147,27 @@ int main(int argc, char *argv[]) {
       finalImageData[(x * 3)  + bytesPerLine + 2] = red_result;
 
     }
-
   }
 
   // allocate result image mem
   file = fopen("resultimage.bmp", "wb+");
 
   if(fileHeader.bfSize > fileHeader2.bfSize) {
-    biggerHeader = fileHeader;
+    biggerFHeader = fileHeader;
     
   } else {
-    biggerHeader = fileHeader2;
+    biggerFHeader = fileHeader2;
   }
 
 
-  fwrite(&biggerHeader.bfType, 1, sizeof(fileHeader.bfType),  file);
-  fwrite(&biggerHeader.bfSize, 1, sizeof(fileHeader.bfSize), file);
-  fwrite(&biggerHeader.bfReserved1, 1, sizeof(fileHeader.bfReserved1), file);
-  fwrite(&biggerHeader.bfReserved2, 1, sizeof(fileHeader.bfReserved2), file);
-  fwrite(&biggerHeader.bfOffBits, 1, sizeof(fileHeader.bfOffBits), file);
+  fwrite(&biggerFHeader.bfType, 1, sizeof(fileHeader.bfType),  file);
+  fwrite(&biggerFHeader.bfSize, 1, sizeof(fileHeader.bfSize), file);
+  fwrite(&biggerFHeader.bfReserved1, 1, sizeof(fileHeader.bfReserved1), file);
+  fwrite(&biggerFHeader.bfReserved2, 1, sizeof(fileHeader.bfReserved2), file);
+  fwrite(&biggerFHeader.bfOffBits, 1, sizeof(fileHeader.bfOffBits), file);
 
 
-  fwrite(&bigger, 1, sizeof(tagBITMAPINFOHEADER), file);
+  fwrite(&biggerIHeader, 1, sizeof(tagBITMAPINFOHEADER), file);
 
   fwrite(finalImageData, infoHeader.biSizeImage, 1, file);
   fclose(file);
