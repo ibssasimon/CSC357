@@ -44,7 +44,7 @@ unsigned char getColor(unsigned char* imageData, int width, int x, int y, int co
 int main(int argc, char *argv[]) {
   printf("%d\n", argc);
   FILE *file = fopen("lion.bmp","rb");
-  FILE *file2 = fopen("flowers.bmp", "rb");
+  FILE *file2 = fopen("tunnel.bmp", "rb");
   
   int x;
   int y;
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
   //fseek(file, fileHeader.bfOffBits, SEEK_SET);
   unsigned char* imageData = (unsigned char*)malloc(infoHeader.biSizeImage);
   unsigned char* imageData2 = (unsigned char*)malloc(infoHeader2.biSizeImage);
-  unsigned char* finalImageData = (unsigned char*)malloc(infoHeader.biSizeImage);
+  unsigned char* finalImageData;
 
   fread(imageData, 1, infoHeader.biSizeImage, file);
   fread(imageData2, 1, infoHeader2.biSizeImage, file2);
@@ -99,9 +99,11 @@ int main(int argc, char *argv[]) {
   if(infoHeader.biSizeImage >= infoHeader2.biSizeImage) {
     biggerIHeader = infoHeader;
     smallerIHeader = infoHeader2;
+    finalImageData = (unsigned char*)malloc(infoHeader.biSizeImage);
   } else {
     biggerIHeader = infoHeader2;
     smallerIHeader = infoHeader;
+    finalImageData = (unsigned char*)malloc(infoHeader2.biSizeImage);
   }
 
 
@@ -126,12 +128,12 @@ int main(int argc, char *argv[]) {
       //UPDATE SECOND IMAGE
       // getting small image coordinates and pixels
 
-      int small_x = x * (smallerIHeader.biWidth / biggerIHeader.biWidth);
-      int small_y = y * (smallerIHeader.biHeight / biggerIHeader.biHeight);
+      int small_x = x * ((float)smallerIHeader.biWidth / (float)biggerIHeader.biWidth);
+      int small_y = y * ((float)smallerIHeader.biHeight / (float)biggerIHeader.biHeight);
 
       unsigned char b2 = getColor(imageData2, infoHeader2.biWidth, small_x, small_y, 0);
       unsigned char g2 = getColor(imageData2, infoHeader2.biWidth, small_x, small_y, 1);
-      unsigned char r2 = getColor(imageData2, infoHeader.biWidth, small_x, small_y, 2);
+      unsigned char r2 = getColor(imageData2, infoHeader2.biWidth, small_x, small_y, 2);
 
       // Blend image - use ratio to manipulate original pixels
 
@@ -181,7 +183,7 @@ int main(int argc, char *argv[]) {
 
 // function to manipulate image data
 unsigned char getColor(unsigned char* imageData, int width, int x, int y, int color) {
-  int bytesPerLine = y * infoHeader.biWidth * 3;
+  int bytesPerLine = width * 3;
   if(bytesPerLine % 4 != 0) {
     bytesPerLine = bytesPerLine + (4 - (bytesPerLine % 4));
   }
@@ -189,6 +191,6 @@ unsigned char getColor(unsigned char* imageData, int width, int x, int y, int co
  // return imageData[(x * 3)  + bytesPerLine*y + (width* 3 * y) + color] = color;
   //finalImageData[(x*3) + bytesPerLine] = imageData[(x * 3)  + bytesPerLine + color];
   //finalImageData[(x*3) + bytesPerLine + 1] = imageData[(x * 3)  + bytesPerLine + 1];
-  return imageData[(x * 3)  + bytesPerLine + color];
+  return imageData[(x * 3)  + y * bytesPerLine + color];
 
 }
