@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
   int x;
   int y;
   double ratio;
-  ratio = 0.0;
+  ratio = 0.5;
 
   // null pointer check
   if(file == NULL) {
@@ -160,16 +160,16 @@ int main(int argc, char *argv[]) {
   }
 
 
-  fwrite(&biggerFHeader.bfType, 1, sizeof(fileHeader.bfType),  file);
-  fwrite(&biggerFHeader.bfSize, 1, sizeof(fileHeader.bfSize), file);
-  fwrite(&biggerFHeader.bfReserved1, 1, sizeof(fileHeader.bfReserved1), file);
-  fwrite(&biggerFHeader.bfReserved2, 1, sizeof(fileHeader.bfReserved2), file);
-  fwrite(&biggerFHeader.bfOffBits, 1, sizeof(fileHeader.bfOffBits), file);
+  fwrite(&biggerFHeader.bfType, 1, sizeof(biggerFHeader.bfType),  file);
+  fwrite(&biggerFHeader.bfSize, 1, sizeof(biggerFHeader.bfSize), file);
+  fwrite(&biggerFHeader.bfReserved1, 1, sizeof(biggerFHeader.bfReserved1), file);
+  fwrite(&biggerFHeader.bfReserved2, 1, sizeof(biggerFHeader.bfReserved2), file);
+  fwrite(&biggerFHeader.bfOffBits, 1, sizeof(biggerFHeader.bfOffBits), file);
 
 
   fwrite(&biggerIHeader, 1, sizeof(tagBITMAPINFOHEADER), file);
 
-  fwrite(finalImageData, infoHeader.biSizeImage, 1, file);
+  fwrite(finalImageData, biggerIHeader.biSizeImage, 1, file);
   fclose(file);
 
   
