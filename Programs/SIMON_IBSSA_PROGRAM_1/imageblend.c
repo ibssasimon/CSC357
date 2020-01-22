@@ -38,13 +38,16 @@ tagBITMAPFILEHEADER biggerFHeader;
 tagBITMAPINFOHEADER biggerIHeader;
 tagBITMAPINFOHEADER smallerIHeader;
 
+unsigned char* biggerData;
+unsigned char* smallerData;
+
 // function declarations
 unsigned char getColor(unsigned char* imageData, int width, int x, int y, int color);
 
 int main(int argc, char *argv[]) {
   printf("%d\n", argc);
-  FILE *file = fopen("lion.bmp","rb");
-  FILE *file2 = fopen("tunnel.bmp", "rb");
+  FILE *file = fopen("flowers.bmp","rb");
+  FILE *file2 = fopen("lion.bmp", "rb");
   
   int x;
   int y;
@@ -99,11 +102,15 @@ int main(int argc, char *argv[]) {
   if(infoHeader.biSizeImage >= infoHeader2.biSizeImage) {
     biggerIHeader = infoHeader;
     smallerIHeader = infoHeader2;
-    finalImageData = (unsigned char*)malloc(infoHeader.biSizeImage);
+    finalImageData = (unsigned char*)malloc(biggerIHeader.biSizeImage);
+    biggerData = imageData;
+    smallerData = imageData2;
   } else {
     biggerIHeader = infoHeader2;
     smallerIHeader = infoHeader;
-    finalImageData = (unsigned char*)malloc(infoHeader2.biSizeImage);
+    finalImageData = (unsigned char*)malloc(biggerIHeader.biSizeImage);
+    biggerData = imageData2;
+    smallerData = imageData;
   }
 
 
@@ -121,9 +128,9 @@ int main(int argc, char *argv[]) {
 
       // getting pixels of bigger image
       
-      unsigned char b1 = getColor(imageData, biggerIHeader.biWidth, x, y, 0);
-      unsigned char g1 = getColor(imageData, biggerIHeader.biWidth, x, y, 1);
-      unsigned char r1 = getColor(imageData, biggerIHeader.biWidth, x, y, 2);
+      unsigned char b1 = getColor(biggerData, biggerIHeader.biWidth, x, y, 0);
+      unsigned char g1 = getColor(biggerData, biggerIHeader.biWidth, x, y, 1);
+      unsigned char r1 = getColor(biggerData, biggerIHeader.biWidth, x, y, 2);
 
       //UPDATE SECOND IMAGE
       // getting small image coordinates and pixels
@@ -131,9 +138,9 @@ int main(int argc, char *argv[]) {
       int small_x = x * ((float)smallerIHeader.biWidth / (float)biggerIHeader.biWidth);
       int small_y = y * ((float)smallerIHeader.biHeight / (float)biggerIHeader.biHeight);
 
-      unsigned char b2 = getColor(imageData2, infoHeader2.biWidth, small_x, small_y, 0);
-      unsigned char g2 = getColor(imageData2, infoHeader2.biWidth, small_x, small_y, 1);
-      unsigned char r2 = getColor(imageData2, infoHeader2.biWidth, small_x, small_y, 2);
+      unsigned char b2 = getColor(smallerData, smallerIHeader.biWidth, small_x, small_y, 0);
+      unsigned char g2 = getColor(smallerData, smallerIHeader.biWidth, small_x, small_y, 1);
+      unsigned char r2 = getColor(smallerData, smallerIHeader.biWidth, small_x, small_y, 2);
 
       // Blend image - use ratio to manipulate original pixels
 
