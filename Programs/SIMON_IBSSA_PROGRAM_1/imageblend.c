@@ -46,8 +46,8 @@ unsigned char getColor(unsigned char* imageData, int width, int x, int y, int co
 
 int main(int argc, char *argv[]) {
   printf("%d\n", argc);
-  FILE *file = fopen("flowers.bmp","rb");
-  FILE *file2 = fopen("lion.bmp", "rb");
+  FILE *file = fopen("lion.bmp","rb");
+  FILE *file2 = fopen("wolf.bmp", "rb");
   
   int x;
   int y;
