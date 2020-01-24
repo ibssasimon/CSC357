@@ -201,3 +201,29 @@ unsigned char getColor(unsigned char* imageData, int width, int x, int y, int co
   return imageData[(x * 3)  + y * bytesPerLine + color];
 
 }
+
+unsigned char getColorBilinear(unsigned char* imageData, int width, float x, float y, int color) {
+  // width and height check
+
+  if(width >= smallerIHeader.biWidth - 1) {
+    return 0;
+  }
+
+  // assign x and y ix, iy: ix = x; x = x - ix;
+  int ix = x;
+  int iy = y;
+
+  x = x - ix;
+  y = y - iy;
+
+
+  // padding check (bytes per line stuff)
+  int 
+  // access four pixels 
+  imageData[(ix * 3) + (iy * 3 * width) + color + bytesPerline] // top left
+  imageData[((ix+ 1) * 3) + (iy * 3 * width) + color + bytesPerline] // top right
+  // do this for all
+
+
+
+}
