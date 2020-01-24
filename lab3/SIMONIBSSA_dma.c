@@ -28,7 +28,7 @@ BYTE* split(chunkhead* chunk, int size);
 
 int main() {
   printf("my dynamic memory allocation assignment\n");
-
+  printf("address of my heap: %x\n", &myheap);
   // defining first chunkhead
   chunkhead *ch = (chunkhead*)myheap;
   ch -> info = 0;
@@ -37,6 +37,7 @@ int main() {
   ch -> prev = 0;
 
   ibssaloc(1024);
+  ibssaloc(2048);
 
 
   return 0;
@@ -94,10 +95,15 @@ void merge(BYTE* chunk1, BYTE* chunk2) {
 BYTE* split(chunkhead* chunk, int size) {
   // implementation of split function. Should return address of new chunk.
   chunkhead* newChunk = ((BYTE*)chunk) + size;
-  chunk -> info = 1;
   chunk -> size = size;
-  chunk -> next = &newChunk;
-  chunk -> next = 0;
+  chunk -> info = 1;
+  chunk -> prev = 0;
+  chunk -> next = (BYTE*)newChunk;
 
-  return (BYTE*)(chunk + 1);
+  newChunk -> info = 0;
+  newChunk -> size = _1MB - sizeof(chunkhead) - size;
+  newChunk -> next = 0;
+  newChunk -> prev = chunk;
+
+  return (BYTE*)newChunk;
 }
