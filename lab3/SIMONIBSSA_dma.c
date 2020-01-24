@@ -24,7 +24,10 @@ BYTE* ibssaloc(unsigned int size);
 void myfree(BYTE* myaddres);
 void merge(chunkhead* chunk1, chunkhead* chunk2);
 void mergeMult(chunkhead* chunk1, chunkhead* chunk2, chunkhead* chunk3);
-BYTE* split(chunkhead* chunk, int size);
+BYTE* split(chunkhead* chunk, int size, int chunks);
+void analyse();
+
+int chunks = 1;
 
 
 int main() {
@@ -37,9 +40,12 @@ int main() {
   ch -> next = 0;
   ch -> prev = 0;
 
-  unsigned char* p = ibssaloc(1024);
-  //myfree(p);
 
+
+  unsigned char* p = ibssaloc(1024);
+  unsigned char* q = ibssaloc(2048);
+  //myfree(q);
+  analyse();
 
   return 0;
 }
@@ -56,23 +62,18 @@ BYTE* ibssaloc(unsigned int size) {
   }
 
   for(;ch != NULL; ch = (chunkhead*) ch->next) {
-
     if(ch == 0) {
       return 0;
     }
 
-    if(ch -> info == 0 || ch -> size > size) {
-      BYTE* newChunkAddress = split(ch, size);
+    if(ch -> info == 0 && ch -> size >= size) {
+      BYTE* newChunkAddress = split(ch, size, chunks);
+      chunks++;
       return newChunkAddress;
     }
 
   }
 
-  
-  
-
-
-  
 
   // check ch-> size with size
   // check ch -> info with 0 or 1
@@ -91,75 +92,110 @@ BYTE* ibssaloc(unsigned int size) {
 }
 
 
-/*void myfree(BYTE* myaddress) {
+void myfree(BYTE* myaddress) {
   // implementation of free function
   chunkhead* ch;
   ch = (chunkhead*)(myaddress - sizeof(ch));
 
+  chunkhead* chunkheadNext = (chunkhead*)ch -> next;
+  chunkhead* chunkheadPrev = (chunkhead*)ch -> prev;
+
   ch -> info = 0;
-  ch -> size = 0;
   
   // preventing segfault by null check
-  if(ch ->next !=0 && ch-> prev != 0) {
+  if(ch !=0 && ch-> prev != 0 && ch-> next != 0) {
 
-    // case 1
-    if(ch -> next -> info == 1 && ch -> prev -> info == 1) {
-      ch -> info = 0;
-      ch -> size = 0;
+    // ch next is occupied, ch prev is occupied (1)
+    if(((chunkhead*)ch -> next) -> info == 1 && ((chunkhead*)ch -> prev) -> info == 1) {
+      return;
     }
 
-    if(ch -> next -> info == 1 && ch -> prev -> info == 0) {
-      ch -> info = 0;
-      ch -> size = 0;
-            merge(ch, ch-> prev);
+    // ch next is occupied, ch prev is free (2)
+    if(((chunkhead*)ch -> next) -> info == 1 && ((chunkhead*)ch -> prev) -> info == 0) {
+      
+      ((chunkhead*)ch -> prev) -> size += ((chunkhead*)ch) -> size + sizeof(chunkhead);
+
+      chunkhead* potentialNext = ch -> next;
+
+      chunkheadPrev -> next = potentialNext;
+
+
+      if(potentialNext != NULL ) {
+        potentialNext -> prev = chunkheadPrev;
+      }
+
 
     }
 
-    if(ch -> next -> info == 0 && ch -> prev -> info == 1) {
-      ch -> info = 0;
-      ch -> size = 0;
-      merge(ch, ch-> next);
+    // ch next is free, ch prev is free (3) inverse of last one
+    if(((chunkhead*)ch -> next) -> info == 0 && ((chunkhead*)ch -> prev) -> info == 1) {
+
+      ((chunkhead*)ch -> next) -> size += ((chunkhead*)ch) -> size + sizeof(chunkhead);
+
+      chunkhead* potentialPrev = ch -> prev;
+
+      chunkheadNext -> prev = potentialPrev;
+
+      if(potentialPrev != NULL) {
+        potentialPrev -> next = chunkheadNext;
+      }
+
+      return;
     }
 
-    if(ch -> net -> info == 0 && ch-> prev -> info == 0) {
-      ch -> info = 0;
-      ch -> size = 0;
-      mergeMult(ch-> prev, ch, ch->next);
+    // ch next is free, ch prev is free (4)
+    if(((chunkhead*)ch -> next) -> info == 0 && ((chunkhead*)ch-> prev) -> info == 0) {
+      // previous size incremented by next and current size
+      ((chunkhead*)ch -> prev) -> size += ((chunkhead*)ch) -> size  + ((chunkhead*)ch -> next) -> size + sizeof(chunkhead);
+      // potential next is ch -> next next
+      chunkhead* potentialNext = ((chunkhead*)ch -> next) -> next;
+      // chunheadPrev -> next = potential -> next
+      chunkheadPrev -> next = potentialNext -> next;
+      // if potential next not null, potentialNext prev = chunkhead prev
+      if(potentialNext!= NULL) {
+        potentialNext -> prev = ch -> prev;
+      }
+      return;
     }
-
-
-
 
   }  
-  
-
-}*/
-
-void merge(chunkhead* chunk1, chunkhead* chunk2) {
-  // implentation of merge function
-  chunk1 -> next = chunk2;
-  chunk2 -> prev = chunk1;
 }
 
-void mergeMult(chunkhead* chunk1, chunkhead* chunk2, chunkhead* chunk3) {
-  chunk1 -> next = chunk2;
-  chunk2 -> next = chunk3;
-  chunk3 -> prev = chunk2;
-  chunk2 -> prev = chunk1;
-}
-
-BYTE* split(chunkhead* chunk, int size) {
+BYTE* split(chunkhead* chunk, int size, int chunks) {
   // implementation of split function. Should return address of new chunk.
-  chunkhead* newChunk = ((BYTE*)chunk) + size;
+  BYTE* newChunkAddress = ((BYTE*)chunk) + sizeof(chunkhead) + size;
+  chunkhead* newChunk = (chunkhead*)newChunkAddress;
+
+
+  newChunk -> size = (chunk-> size) - sizeof(chunkhead) - size;
   chunk -> size = size;
   chunk -> info = 1;
   chunk -> prev = 0;
-  chunk -> next = (chunkhead*)newChunk;
+  chunk -> next = (BYTE*)newChunk;
 
   newChunk -> info = 0;
-  newChunk -> size = _1MB - sizeof(chunkhead) - size;
   newChunk -> next = 0;
-  newChunk -> prev = chunk;
+  newChunk -> prev = (BYTE*)chunk;
 
-  return (BYTE*)newChunk;
+  return ((BYTE*)chunk) + sizeof(chunkhead);
+}
+
+void analyse() {
+  int i = 0;
+  chunkhead* ch = (chunkhead*)myheap;
+
+    for(;ch != NULL; ch = (chunkhead*) ch->next) {
+      i++;
+      printf("Chunk #%d\n", i);
+      printf("Size = %d bytes\n", ch -> size);
+
+      if(ch -> info == 1) {
+        printf("Occupied\n");
+      } else {
+        printf("Free\n");
+      }
+      printf("Next = %p\n", (ch -> next));
+      printf("Prev = %p\n", (ch -> prev));
+      printf("\n");
+    }
 }
