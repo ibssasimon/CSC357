@@ -20,14 +20,13 @@ typedef struct chunkhead {
 }chunkhead;
 
 // function declarations
-BYTE* ibssaloc(unsigned int size);
+BYTE* mymalloc(unsigned int size);
 void myfree(BYTE* myaddres);
 void merge(chunkhead* chunk1, chunkhead* chunk2);
 void mergeMult(chunkhead* chunk1, chunkhead* chunk2, chunkhead* chunk3);
-BYTE* split(chunkhead* chunk, int size, int chunks);
+BYTE* split(chunkhead* chunk, int size);
 void analyse();
 
-int chunks = 1;
 
 
 int main() {
@@ -42,9 +41,8 @@ int main() {
 
 
 
-  unsigned char* p = ibssaloc(1024);
-  unsigned char* q = ibssaloc(2048);
-  //myfree(q);
+  unsigned char* p = mymalloc(1024);
+  unsigned char* q = mymalloc(2048);
   analyse();
 
   return 0;
@@ -52,7 +50,7 @@ int main() {
 
 
 
-BYTE* ibssaloc(unsigned int size) {
+BYTE* mymalloc(unsigned int size) {
   // get first chunkhead, typecasted
   chunkhead* ch = (chunkhead*)myheap;
 
@@ -67,27 +65,11 @@ BYTE* ibssaloc(unsigned int size) {
     }
 
     if(ch -> info == 0 && ch -> size >= size) {
-      BYTE* newChunkAddress = split(ch, size, chunks);
-      chunks++;
+      BYTE* newChunkAddress = split(ch, size);
       return newChunkAddress;
     }
 
   }
-
-
-  // check ch-> size with size
-  // check ch -> info with 0 or 1
-      // if false, go to next chunkhead
-
-      // if true, set ch to new values
-      // split chunkhead into mem value
-      // link chunks
-      // return ((BYTE*)chunkhead) + 16;
-
-  
-
-  // iterate through all chunkheads checking size and info
-
   return 0;
 }
 
@@ -95,7 +77,7 @@ BYTE* ibssaloc(unsigned int size) {
 void myfree(BYTE* myaddress) {
   // implementation of free function
   chunkhead* ch;
-  ch = (chunkhead*)(myaddress - sizeof(ch));
+  ch = (chunkhead*)(myaddress);
 
   chunkhead* chunkheadNext = (chunkhead*)ch -> next;
   chunkhead* chunkheadPrev = (chunkhead*)ch -> prev;
@@ -103,7 +85,7 @@ void myfree(BYTE* myaddress) {
   ch -> info = 0;
   
   // preventing segfault by null check
-  if(ch !=0 && ch-> prev != 0 && ch-> next != 0) {
+  if(ch-> prev != 0) {
 
     // ch next is occupied, ch prev is occupied (1)
     if(((chunkhead*)ch -> next) -> info == 1 && ((chunkhead*)ch -> prev) -> info == 1) {
@@ -161,7 +143,7 @@ void myfree(BYTE* myaddress) {
   }  
 }
 
-BYTE* split(chunkhead* chunk, int size, int chunks) {
+BYTE* split(chunkhead* chunk, int size) {
   // implementation of split function. Should return address of new chunk.
   BYTE* newChunkAddress = ((BYTE*)chunk) + sizeof(chunkhead) + size;
   chunkhead* newChunk = (chunkhead*)newChunkAddress;
@@ -170,12 +152,12 @@ BYTE* split(chunkhead* chunk, int size, int chunks) {
   newChunk -> size = (chunk-> size) - sizeof(chunkhead) - size;
   chunk -> size = size;
   chunk -> info = 1;
-  chunk -> prev = 0;
   chunk -> next = (BYTE*)newChunk;
 
   newChunk -> info = 0;
   newChunk -> next = 0;
   newChunk -> prev = (BYTE*)chunk;
+  chunk -> prev = ((chunkhead*)newChunk -> prev) -> prev;
 
   return ((BYTE*)chunk) + sizeof(chunkhead);
 }
