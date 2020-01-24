@@ -43,12 +43,12 @@ unsigned char* smallerData;
 
 // function declarations
 unsigned char getColor(unsigned char* imageData, int width, int x, int y, int color);
-unsigned char getColorBilinear(unsigned char* imageData, int width, float x, float y, int color);
+unsigned char getColorBilinear(unsigned char* imageData, int width, int height, float x, float y, int color);
 
 int main(int argc, char *argv[]) {
   printf("%d\n", argc);
   FILE *file = fopen("lion.bmp","rb");
-  FILE *file2 = fopen("wolf.bmp", "rb");
+  FILE *file2 = fopen("jar.bmp", "rb");
   
   int x;
   int y;
@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
 
   // check size of infoHeader's image size for both files before looping
 
-  if(infoHeader.biSizeImage >= infoHeader2.biSizeImage) {
+  if(infoHeader.biWidth >= infoHeader2.biWidth) {
     biggerIHeader = infoHeader;
     smallerIHeader = infoHeader2;
     finalImageData = (unsigned char*)malloc(biggerIHeader.biSizeImage);
@@ -141,24 +141,31 @@ int main(int argc, char *argv[]) {
       int small_x = x * ((float)smallerIHeader.biWidth / (float)biggerIHeader.biWidth);
       int small_y = y * ((float)smallerIHeader.biHeight / (float)biggerIHeader.biHeight);
 
-      unsigned char b2 = getColorBilinear(smallerData, smallerIHeader.biWidth, small_x, small_y, 0);
-      unsigned char g2 = getColorBilinear(smallerData, smallerIHeader.biWidth, small_x, small_y, 1);
-      unsigned char r2 = getColorBilinear(smallerData, smallerIHeader.biWidth, small_x, small_y, 2);
+     
+
+      float x2 = small_x * (float)x;
+      float y2 = small_y * (float)y;
+
+      unsigned char b2 = getColorBilinear(smallerData, smallerIHeader.biWidth, smallerIHeader.biHeight,small_x, small_y, 0);
+      unsigned char g2 = getColorBilinear(smallerData, smallerIHeader.biWidth, smallerIHeader.biHeight, small_x, small_y, 1);
+      unsigned char r2 = getColorBilinear(smallerData, smallerIHeader.biWidth, smallerIHeader.biHeight, small_x, small_y, 2);
+
+
 
       // DO I MIX HERE FOR BILINEAR?
 
       // Blend image - use ratio to manipulate original pixels
 
-      unsigned char blue_result = (b1 * ratio) + b2*(1 - ratio);
-      unsigned char green_result = (g1 * ratio) + g2*(1 - ratio);
-      unsigned char red_result = (r1 * ratio) + r2*(1 - ratio);
+      unsigned char blue_result = (b2 * ratio) + b1*(1 - ratio);
+      unsigned char green_result = (g2 * ratio) + g1*(1 - ratio);
+      unsigned char red_result = (r2 * ratio) + r1*(1 - ratio);
 
 
       // assign into final image data
 
-      finalImageData[(x * 3)  + bytesPerLine + 0] = blue_result;
-      finalImageData[(x * 3)  + bytesPerLine + 1] = green_result;
-      finalImageData[(x * 3)  + bytesPerLine + 2] = red_result;
+      finalImageData[(x * 3)  +  y*biggerIHeader.biWidth*3 + 0] = blue_result;
+      finalImageData[(x * 3)  + y*biggerIHeader.biWidth*3 + 1] = green_result;
+      finalImageData[(x * 3)  + y*biggerIHeader.biWidth*3 + 2] = red_result;
 
     }
   }
@@ -207,10 +214,10 @@ unsigned char getColor(unsigned char* imageData, int width, int x, int y, int co
 
 }
 
-unsigned char getColorBilinear(unsigned char* imageData, int width, float x, float y, int color) {
-  // width and height check
+unsigned char getColorBilinear(unsigned char* imageData, int width, int height, float x, float y, int color) {
+  // width  check
 
-  if(width >= smallerIHeader.biWidth - 1) {
+  if(x >= width - 1 || y >= height - 1) {
     return 0;
   }
 
@@ -236,13 +243,12 @@ unsigned char getColorBilinear(unsigned char* imageData, int width, float x, flo
 
 
   // are my dx and dy ratios correct?
-  float dx = ix / (ix + 1);
-  float dy = (iy + 1) / iy;
+  //float dx = ix / (ix + 1);
+  //float dy = (iy + 1) / iy;
 
-  // DO I MIX HERE? 
-  unsigned char colorLeft = colorTopLeft * (1 - dy) + colorBottomLeft * dy;
-  unsigned char colorRight = colorTopRight * (1 - dy) + colorBottomRight * dy;
-  unsigned char colorResult = colorLeft * (1 - dx) + colorRight * dx;
+  unsigned char colorLeft = colorTopLeft * (1 - y) + colorBottomLeft * y;
+  unsigned char colorRight = colorTopRight * (1 - y) + colorBottomRight * y;
+  unsigned char colorResult = colorLeft * (1 - x) + colorRight * x;
 
   return colorResult;
 }
