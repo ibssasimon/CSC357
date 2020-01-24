@@ -43,6 +43,7 @@ unsigned char* smallerData;
 
 // function declarations
 unsigned char getColor(unsigned char* imageData, int width, int x, int y, int color);
+unsigned char getColorBilinear(unsigned char* imageData, int width, float x, float y, int color);
 
 int main(int argc, char *argv[]) {
   printf("%d\n", argc);
@@ -135,12 +136,16 @@ int main(int argc, char *argv[]) {
       //UPDATE SECOND IMAGE
       // getting small image coordinates and pixels
 
+
+
       int small_x = x * ((float)smallerIHeader.biWidth / (float)biggerIHeader.biWidth);
       int small_y = y * ((float)smallerIHeader.biHeight / (float)biggerIHeader.biHeight);
 
-      unsigned char b2 = getColor(smallerData, smallerIHeader.biWidth, small_x, small_y, 0);
-      unsigned char g2 = getColor(smallerData, smallerIHeader.biWidth, small_x, small_y, 1);
-      unsigned char r2 = getColor(smallerData, smallerIHeader.biWidth, small_x, small_y, 2);
+      unsigned char b2 = getColorBilinear(smallerData, smallerIHeader.biWidth, small_x, small_y, 0);
+      unsigned char g2 = getColorBilinear(smallerData, smallerIHeader.biWidth, small_x, small_y, 1);
+      unsigned char r2 = getColorBilinear(smallerData, smallerIHeader.biWidth, small_x, small_y, 2);
+
+      // DO I MIX HERE FOR BILINEAR?
 
       // Blend image - use ratio to manipulate original pixels
 
@@ -218,12 +223,26 @@ unsigned char getColorBilinear(unsigned char* imageData, int width, float x, flo
 
 
   // padding check (bytes per line stuff)
-  int 
+  int bytesPerLine = width * 3;
+  if(bytesPerLine % 4 != 0) {
+    bytesPerLine = bytesPerLine + (4 - (bytesPerLine % 4));
+  }
+
   // access four pixels 
-  imageData[(ix * 3) + (iy * 3 * width) + color + bytesPerline] // top left
-  imageData[((ix+ 1) * 3) + (iy * 3 * width) + color + bytesPerline] // top right
-  // do this for all
+  unsigned char colorTopLeft = imageData[(ix * 3) + (iy * 3 * width) + color + bytesPerLine]; // top left
+  unsigned char colorTopRight = imageData[((ix+ 1) * 3) + (iy * 3 * width) + color + bytesPerLine]; // top right
+  unsigned char colorBottomLeft = imageData[(ix * 3) + ((iy+1) * 3 * width) + color + bytesPerLine]; // bottom left
+  unsigned char colorBottomRight = imageData[((ix+ 1) * 3) + ((iy+1) * 3 * width) + color + bytesPerLine]; // bottom right corner
 
 
+  // are my dx and dy ratios correct?
+  float dx = ix / (ix + 1);
+  float dy = (iy + 1) / iy;
 
+  // DO I MIX HERE? 
+  unsigned char colorLeft = colorTopLeft * (1 - dy) + colorBottomLeft * dy;
+  unsigned char colorRight = colorTopRight * (1 - dy) + colorBottomRight * dy;
+  unsigned char colorResult = colorLeft * (1 - dx) + colorRight * dx;
+
+  return colorResult;
 }
