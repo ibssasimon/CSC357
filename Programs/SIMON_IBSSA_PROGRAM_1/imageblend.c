@@ -41,19 +41,30 @@ tagBITMAPINFOHEADER smallerIHeader;
 unsigned char* biggerData;
 unsigned char* smallerData;
 
+FILE* file;
+FILE* file2;
+
 // function declarations
 unsigned char getColor(unsigned char* imageData, int width, int x, int y, int color);
 unsigned char getColorBilinear(unsigned char* imageData, int width, int height, float x, float y, int color);
 
 int main(int argc, char *argv[]) {
-  printf("%d\n", argc);
-  FILE *file = fopen("lion.bmp","rb");
-  FILE *file2 = fopen("jar.bmp", "rb");
+
+  char* err;
+
+  if(argc == 5) {
+    file = fopen(argv[1],"rb");
+    file2 = fopen(argv[2], "rb");
+  } else {
+    printf("you must input correct params: [program] [imagefile1] [imagefile2] [ratio] [outputfile]\n");
+
+  }
+  
   
   int x;
   int y;
   double ratio;
-  ratio = 0.5;
+  ratio = strtod(argv[3], &err);
 
   // null pointer check
   if(file == NULL) {
@@ -171,7 +182,7 @@ int main(int argc, char *argv[]) {
   }
 
   // allocate result image mem
-  file = fopen("resultimage.bmp", "wb+");
+  file = fopen(argv[4], "wb+");
 
   if(fileHeader.bfSize > fileHeader2.bfSize) {
     biggerFHeader = fileHeader;
