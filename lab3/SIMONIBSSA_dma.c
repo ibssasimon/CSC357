@@ -46,6 +46,21 @@ BYTE* ibssaloc(unsigned int size) {
   // get first chunkhead, typecasted
   chunkhead* ch = (chunkhead*)myheap;
 
+  if(size % PAGESIZE != 0) {
+    printf("Size must be a multiple of PAGESIZE\n");
+    return 0;
+  }
+
+  if(ch -> info == 1 || ch -> size < size) {
+    ch = (chunkhead*)ch -> next;
+  } else {
+    split(ch);
+  }
+
+  if(ch == 0) {
+    return 0;
+  }
+
   // check ch-> size with size
   // check ch -> info with 0 or 1
       // if false, go to next chunkhead
@@ -53,7 +68,6 @@ BYTE* ibssaloc(unsigned int size) {
       // if true, set ch to new values
       // split chunkhead into mem value
       // link chunks
-      // set parameters
       // return ((BYTE*)chunkhead) + 16;
 
   
@@ -75,4 +89,6 @@ void merge(BYTE* chunk1, BYTE* chunk2) {
 
 BYTE* split(BYTE* chunk) {
   // implementation of split function. Should return address of new chunk.
+  chunk = (chunkhead*)chunk;
+  
 }
