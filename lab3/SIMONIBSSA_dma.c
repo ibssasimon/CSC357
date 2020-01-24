@@ -23,7 +23,7 @@ typedef struct chunkhead {
 BYTE* ibssaloc(unsigned int size);
 void myfree(BYTE* myaddres);
 void merge(BYTE* chunk1, BYTE* chunk2);
-BYTE* split(BYTE* chunk);
+BYTE* split(chunkhead* chunk, int size);
 
 
 int main() {
@@ -35,6 +35,8 @@ int main() {
   ch -> size = _1MB - sizeof(chunkhead);
   ch -> next = 0;
   ch -> prev = 0;
+
+  ibssaloc(1024);
 
 
   return 0;
@@ -54,7 +56,9 @@ BYTE* ibssaloc(unsigned int size) {
   if(ch -> info == 1 || ch -> size < size) {
     ch = (chunkhead*)ch -> next;
   } else {
-    split(ch);
+    BYTE* newChunkAddress = split(ch, size);
+    return newChunkAddress;
+
   }
 
   if(ch == 0) {
@@ -87,8 +91,13 @@ void merge(BYTE* chunk1, BYTE* chunk2) {
   // implentation of merge function
 }
 
-BYTE* split(BYTE* chunk) {
+BYTE* split(chunkhead* chunk, int size) {
   // implementation of split function. Should return address of new chunk.
-  chunk = (chunkhead*)chunk;
-  
+  chunkhead* newChunk = ((BYTE*)chunk) + size;
+  chunk -> info = 1;
+  chunk -> size = size;
+  chunk -> next = &newChunk;
+  chunk -> next = 0;
+
+  return (BYTE*)(chunk + 1);
 }
