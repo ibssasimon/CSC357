@@ -22,7 +22,8 @@ typedef struct chunkhead {
 // function declarations
 BYTE* ibssaloc(unsigned int size);
 void myfree(BYTE* myaddres);
-void merge(BYTE* chunk1, BYTE* chunk2);
+void merge(chunkhead* chunk1, chunkhead* chunk2);
+void mergeMult(chunkhead* chunk1, chunkhead* chunk2, chunkhead* chunk3);
 BYTE* split(chunkhead* chunk, int size);
 
 
@@ -36,8 +37,8 @@ int main() {
   ch -> next = 0;
   ch -> prev = 0;
 
-  ibssaloc(1024);
-  ibssaloc(2048);
+  unsigned char* p = ibssaloc(1024);
+  //myfree(p);
 
 
   return 0;
@@ -54,17 +55,24 @@ BYTE* ibssaloc(unsigned int size) {
     return 0;
   }
 
-  if(ch -> info == 1 || ch -> size < size) {
-    ch = (chunkhead*)ch -> next;
-  } else {
-    BYTE* newChunkAddress = split(ch, size);
-    return newChunkAddress;
+  for(;ch != NULL; ch = (chunkhead*) ch->next) {
+
+    if(ch == 0) {
+      return 0;
+    }
+
+    if(ch -> info == 0 || ch -> size > size) {
+      BYTE* newChunkAddress = split(ch, size);
+      return newChunkAddress;
+    }
 
   }
 
-  if(ch == 0) {
-    return 0;
-  }
+  
+  
+
+
+  
 
   // check ch-> size with size
   // check ch -> info with 0 or 1
@@ -83,13 +91,61 @@ BYTE* ibssaloc(unsigned int size) {
 }
 
 
-void myfree(BYTE* myaddress) {
+/*void myfree(BYTE* myaddress) {
   // implementation of free function
+  chunkhead* ch;
+  ch = (chunkhead*)(myaddress - sizeof(ch));
 
+  ch -> info = 0;
+  ch -> size = 0;
+  
+  // preventing segfault by null check
+  if(ch ->next !=0 && ch-> prev != 0) {
+
+    // case 1
+    if(ch -> next -> info == 1 && ch -> prev -> info == 1) {
+      ch -> info = 0;
+      ch -> size = 0;
+    }
+
+    if(ch -> next -> info == 1 && ch -> prev -> info == 0) {
+      ch -> info = 0;
+      ch -> size = 0;
+            merge(ch, ch-> prev);
+
+    }
+
+    if(ch -> next -> info == 0 && ch -> prev -> info == 1) {
+      ch -> info = 0;
+      ch -> size = 0;
+      merge(ch, ch-> next);
+    }
+
+    if(ch -> net -> info == 0 && ch-> prev -> info == 0) {
+      ch -> info = 0;
+      ch -> size = 0;
+      mergeMult(ch-> prev, ch, ch->next);
+    }
+
+
+
+
+  }  
+  
+
+}*/
+
+void merge(chunkhead* chunk1, chunkhead* chunk2) {
+  // implentation of merge function
+  chunk1 -> next = chunk2;
+  chunk2 -> prev = chunk1;
 }
 
-void merge(BYTE* chunk1, BYTE* chunk2) {
-  // implentation of merge function
+void mergeMult(chunkhead* chunk1, chunkhead* chunk2, chunkhead* chunk3) {
+  chunk1 -> next = chunk2;
+  chunk2 -> next = chunk3;
+  chunk3 -> prev = chunk2;
+  chunk2 -> prev = chunk1;
 }
 
 BYTE* split(chunkhead* chunk, int size) {
@@ -98,7 +154,7 @@ BYTE* split(chunkhead* chunk, int size) {
   chunk -> size = size;
   chunk -> info = 1;
   chunk -> prev = 0;
-  chunk -> next = (BYTE*)newChunk;
+  chunk -> next = (chunkhead*)newChunk;
 
   newChunk -> info = 0;
   newChunk -> size = _1MB - sizeof(chunkhead) - size;
