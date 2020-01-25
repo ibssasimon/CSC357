@@ -1,4 +1,5 @@
-/* Simon Ibssa, Cal Poly SLO*/
+/* Simon Ibssa, CPE 357, Cal Poly SLO*/
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -57,7 +58,7 @@ int main(int argc, char *argv[]) {
     file2 = fopen(argv[2], "rb");
   } else {
     printf("you must input correct params: [program] [imagefile1] [imagefile2] [ratio] [outputfile]\n");
-
+    return 0;
   }
   
   
@@ -68,10 +69,12 @@ int main(int argc, char *argv[]) {
 
   // null pointer check
   if(file == NULL) {
+    printf("File(s) does not exist\n");
     return 0;
   }
 
   if(file2 == NULL) {
+    printf("File(s) does not exist\n");
     return 0;
   }
 
@@ -157,19 +160,15 @@ int main(int argc, char *argv[]) {
       float x2 = small_x * (float)x;
       float y2 = small_y * (float)y;
 
-      unsigned char b2 = getColorBilinear(smallerData, smallerIHeader.biWidth, smallerIHeader.biHeight,small_x, small_y, 0);
+      unsigned char b2 = getColorBilinear(smallerData, smallerIHeader.biWidth, smallerIHeader.biHeight, small_x, small_y, 0);
       unsigned char g2 = getColorBilinear(smallerData, smallerIHeader.biWidth, smallerIHeader.biHeight, small_x, small_y, 1);
       unsigned char r2 = getColorBilinear(smallerData, smallerIHeader.biWidth, smallerIHeader.biHeight, small_x, small_y, 2);
 
-
-
-      // DO I MIX HERE FOR BILINEAR?
-
       // Blend image - use ratio to manipulate original pixels
 
-      unsigned char blue_result = (b2 * ratio) + b1*(1 - ratio);
-      unsigned char green_result = (g2 * ratio) + g1*(1 - ratio);
-      unsigned char red_result = (r2 * ratio) + r1*(1 - ratio);
+      unsigned char blue_result = (b1 * ratio) + b2*(1 - ratio);
+      unsigned char green_result = (g1 * ratio) + g2*(1 - ratio);
+      unsigned char red_result = (r1 * ratio) + r2*(1 - ratio);
 
 
       // assign into final image data
@@ -253,7 +252,6 @@ unsigned char getColorBilinear(unsigned char* imageData, int width, int height, 
   unsigned char colorBottomRight = imageData[((ix+ 1) * 3) + ((iy+1) * 3 * width) + color + bytesPerLine]; // bottom right corner
 
 
-  // are my dx and dy ratios correct?
   //float dx = ix / (ix + 1);
   //float dy = (iy + 1) / iy;
 
