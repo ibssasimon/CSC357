@@ -43,6 +43,9 @@ int main() {
 
   unsigned char* p = mymalloc(1024);
   unsigned char* q = mymalloc(2048);
+  unsigned char* r = mymalloc(1024);
+
+  myfree(q);
   analyse();
 
   return 0;
@@ -105,6 +108,7 @@ void myfree(BYTE* myaddress) {
       if(potentialNext != NULL ) {
         potentialNext -> prev = chunkheadPrev;
       }
+      return;
 
 
     }
