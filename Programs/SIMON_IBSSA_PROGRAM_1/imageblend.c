@@ -246,10 +246,10 @@ unsigned char getColorBilinear(unsigned char* imageData, int width, int height, 
   }
 
   // access four pixels 
-  unsigned char colorTopLeft = imageData[(ix * 3) + (iy * 3 * width) + color + bytesPerLine]; // top left
-  unsigned char colorTopRight = imageData[((ix+ 1) * 3) + (iy * 3 * width) + color + bytesPerLine]; // top right
-  unsigned char colorBottomLeft = imageData[(ix * 3) + ((iy+1) * 3 * width) + color + bytesPerLine]; // bottom left
-  unsigned char colorBottomRight = imageData[((ix+ 1) * 3) + ((iy+1) * 3 * width) + color + bytesPerLine]; // bottom right corner
+  unsigned char colorTopLeft = imageData[(ix * 3) + (iy * bytesPerLine) + color]; // top left
+  unsigned char colorTopRight = imageData[((ix+ 1) * 3) + (iy * bytesPerLine) + color]; // top right
+  unsigned char colorBottomLeft = imageData[(ix * 3) + ((iy+1) * bytesPerLine) + color]; // bottom left
+  unsigned char colorBottomRight = imageData[((ix+ 1) * 3) + ((iy+1) * bytesPerLine) + color]; // bottom right corner
 
 
   //float dx = ix / (ix + 1);
