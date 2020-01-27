@@ -1,3 +1,5 @@
+/* Simon Ibssa, CPE 357*/
+
 #include <stdio.h>
 #include <string.h>
 
@@ -41,11 +43,14 @@ int main() {
 
 
 
-  unsigned char* p = mymalloc(1024);
-  unsigned char* q = mymalloc(2048);
-  unsigned char* r = mymalloc(1024);
+  unsigned char* a = mymalloc(1000);
+  unsigned char* b = mymalloc(1000);
+  unsigned char* c = mymalloc(1000);
 
-  myfree(q);
+  myfree(b);
+  analyse();
+  printf("REmoveing a\n");
+  myfree(a);
   analyse();
 
   return 0;
@@ -56,6 +61,8 @@ int main() {
 BYTE* mymalloc(unsigned int size) {
   // get first chunkhead, typecasted
   chunkhead* ch = (chunkhead*)myheap;
+
+  size = (size / PAGESIZE + 1) * PAGESIZE;
 
   if(size % PAGESIZE != 0) {
     printf("Size must be a multiple of PAGESIZE\n");
@@ -80,7 +87,7 @@ BYTE* mymalloc(unsigned int size) {
 void myfree(BYTE* myaddress) {
   // implementation of free function
   chunkhead* ch;
-  ch = (chunkhead*)(myaddress);
+  ch = (chunkhead*)(myaddress - sizeof(chunkhead));
 
   chunkhead* chunkheadNext = (chunkhead*)ch -> next;
   chunkhead* chunkheadPrev = (chunkhead*)ch -> prev;
@@ -88,15 +95,14 @@ void myfree(BYTE* myaddress) {
   ch -> info = 0;
   
   // preventing segfault by null check
-  if(ch-> prev != 0) {
 
     // ch next is occupied, ch prev is occupied (1)
-    if(((chunkhead*)ch -> next) -> info == 1 && ((chunkhead*)ch -> prev) -> info == 1) {
+    if(((chunkhead*)ch -> next) -> info == 1 && ch -> prev &&((chunkhead*)ch -> prev) -> info == 1) {
       return;
     }
 
     // ch next is occupied, ch prev is free (2)
-    if(((chunkhead*)ch -> next) -> info == 1 && ((chunkhead*)ch -> prev) -> info == 0) {
+    if(((chunkhead*)ch -> next) -> info == 1 && ch -> prev &&((chunkhead*)ch -> prev) -> info == 0) {
       
       ((chunkhead*)ch -> prev) -> size += ((chunkhead*)ch) -> size + sizeof(chunkhead);
 
@@ -113,8 +119,8 @@ void myfree(BYTE* myaddress) {
 
     }
 
-    // ch next is free, ch prev is free (3) inverse of last one
-    if(((chunkhead*)ch -> next) -> info == 0 && ((chunkhead*)ch -> prev) -> info == 1) {
+    // ch next is occupied, ch prev is free (3) inverse of last one
+    if(((chunkhead*)ch -> next) -> info == 0 && ch -> prev && ((chunkhead*)ch -> prev) -> info == 1) {
 
       ((chunkhead*)ch -> next) -> size += ((chunkhead*)ch) -> size + sizeof(chunkhead);
 
@@ -130,7 +136,7 @@ void myfree(BYTE* myaddress) {
     }
 
     // ch next is free, ch prev is free (4)
-    if(((chunkhead*)ch -> next) -> info == 0 && ((chunkhead*)ch-> prev) -> info == 0) {
+    if(((chunkhead*)ch -> next) -> info == 0 && ch -> prev && ((chunkhead*)ch-> prev) -> info == 0) {
       // previous size incremented by next and current size
       ((chunkhead*)ch -> prev) -> size += ((chunkhead*)ch) -> size  + ((chunkhead*)ch -> next) -> size + sizeof(chunkhead);
       // potential next is ch -> next next
@@ -142,9 +148,7 @@ void myfree(BYTE* myaddress) {
         potentialNext -> prev = ch -> prev;
       }
       return;
-    }
-
-  }  
+    } 
 }
 
 BYTE* split(chunkhead* chunk, int size) {
