@@ -49,7 +49,7 @@ int main() {
 
   myfree(b);
   analyse();
-  printf("REmoveing a\n");
+  printf("Removing a\n");
   myfree(a);
   analyse();
 
@@ -96,6 +96,19 @@ void myfree(BYTE* myaddress) {
   
   // preventing segfault by null check
 
+  if( ch -> prev == NULL && ((chunkhead*)ch -> next) -> info == 1) {
+    ((chunkhead*)ch -> next) -> size += ((chunkhead*)ch) -> size + sizeof(chunkhead);
+
+      chunkhead* potentialPrev = ch -> prev;
+
+      chunkheadNext -> prev = potentialPrev;
+
+      if(potentialPrev != NULL) {
+        potentialPrev -> next = chunkheadNext;
+      }
+
+      return;
+  }
     // ch next is occupied, ch prev is occupied (1)
     if(((chunkhead*)ch -> next) -> info == 1 && ch -> prev &&((chunkhead*)ch -> prev) -> info == 1) {
       return;
