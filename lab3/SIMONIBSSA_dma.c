@@ -48,8 +48,6 @@ int main() {
   unsigned char* c = mymalloc(1000);
 
   myfree(b);
-  analyse();
-  printf("Removing a\n");
   myfree(a);
   analyse();
 
@@ -92,65 +90,100 @@ void myfree(BYTE* myaddress) {
   chunkhead* chunkheadNext = (chunkhead*)ch -> next;
   chunkhead* chunkheadPrev = (chunkhead*)ch -> prev;
 
+  int isPrevOccupied = 0;
+  int isNextOccupied = 0;
+  int isPrevFree = 0;
+  int isNextFree = 0;
+
+  if (chunkheadNext) {
+    if (chunkheadNext->info == 1) {
+      isNextOccupied = 1;
+    } else {
+      isNextFree = 1;
+    }
+  }
+
+  if (chunkheadPrev) {
+    if (chunkheadPrev->info == 1) {
+      isPrevOccupied = 1;
+    } else {
+      isPrevFree = 1;
+    }
+  } else {
+    isPrevOccupied = 1;
+  }
+
+
+
   ch -> info = 0;
   
   // preventing segfault by null check
 
-  if( ch -> prev == NULL && ((chunkhead*)ch -> next) -> info == 1) {
+  /*if( ch -> prev == NULL && ((chunkhead*)ch -> next) -> info == 1) {
     ((chunkhead*)ch -> next) -> size += ((chunkhead*)ch) -> size + sizeof(chunkhead);
 
       chunkhead* potentialPrev = ch -> prev;
 
       chunkheadNext -> prev = potentialPrev;
 
-      if(potentialPrev != NULL) {
-        potentialPrev -> next = chunkheadNext;
-      }
-
       return;
   }
-    // ch next is occupied, ch prev is occupied (1)
-    if(((chunkhead*)ch -> next) -> info == 1 && ch -> prev &&((chunkhead*)ch -> prev) -> info == 1) {
-      return;
-    }
 
-    // ch next is occupied, ch prev is free (2)
-    if(((chunkhead*)ch -> next) -> info == 1 && ch -> prev &&((chunkhead*)ch -> prev) -> info == 0) {
-      
-      ((chunkhead*)ch -> prev) -> size += ((chunkhead*)ch) -> size + sizeof(chunkhead);
-
-      chunkhead* potentialNext = ch -> next;
-
-      chunkheadPrev -> next = potentialNext;
-
-
-      if(potentialNext != NULL ) {
-        potentialNext -> prev = chunkheadPrev;
-      }
-      return;
-
-
-    }
-
-    // ch next is occupied, ch prev is free (3) inverse of last one
-    if(((chunkhead*)ch -> next) -> info == 0 && ch -> prev && ((chunkhead*)ch -> prev) -> info == 1) {
-
-      ((chunkhead*)ch -> next) -> size += ((chunkhead*)ch) -> size + sizeof(chunkhead);
+  if( ch -> prev == NULL && ((chunkhead*)ch -> next) -> info == 0) {
+    ((chunkhead*)ch -> next) -> size += ((chunkhead*)ch) -> size + sizeof(chunkhead);
 
       chunkhead* potentialPrev = ch -> prev;
 
       chunkheadNext -> prev = potentialPrev;
+      chunkheadNext = ch;
+      ch = NULL;
+      return;
+  }*/
 
-      if(potentialPrev != NULL) {
-        potentialPrev -> next = chunkheadNext;
+
+  
+    // ch next is occupied, ch prev is occupied (1)
+    if(isNextOccupied == 1 && isPrevOccupied == 1) {
+      return;
+    }
+
+    // ch next is occupied, ch prev is free (2)
+    if(isNextOccupied == 1 && isPrevFree == 1) {
+      
+      if(ch -> prev != NULL) {
+        ((chunkhead*)ch -> prev) -> size += ((chunkhead*)ch) -> size + sizeof(chunkhead);
+
+        chunkhead* potentialNext = ch -> next;
+
+        chunkheadPrev -> next = potentialNext;
+
+
+        if(potentialNext != NULL ) {
+          potentialNext -> prev = chunkheadPrev;
+        }
       }
+      return;
+    }
 
+    // ch next is free, ch prev is occupied (3)
+    if(isNextFree == 1 && isPrevFree == 0) {
+    printf("\nGFUHIEJLWKO\n");
+
+      ((chunkhead*)ch) -> size += ((chunkhead*)ch -> next) -> size + sizeof(chunkhead);
+
+      chunkhead* potentialNext = ((chunkhead*)ch -> next) -> next;
+      
+      ch -> next = potentialNext;
+
+      if(potentialNext != NULL) {
+        potentialNext -> prev = ch;
+      }
       return;
     }
 
     // ch next is free, ch prev is free (4)
-    if(((chunkhead*)ch -> next) -> info == 0 && ch -> prev && ((chunkhead*)ch-> prev) -> info == 0) {
-      // previous size incremented by next and current size
+    if(isNextFree == 1 && isPrevFree == 1) {
+        // previous size incremented by next and current size
       ((chunkhead*)ch -> prev) -> size += ((chunkhead*)ch) -> size  + ((chunkhead*)ch -> next) -> size + sizeof(chunkhead);
       // potential next is ch -> next next
       chunkhead* potentialNext = ((chunkhead*)ch -> next) -> next;
@@ -160,8 +193,9 @@ void myfree(BYTE* myaddress) {
       if(potentialNext!= NULL) {
         potentialNext -> prev = ch -> prev;
       }
+      
       return;
-    } 
+  } 
 }
 
 BYTE* split(chunkhead* chunk, int size) {
@@ -197,6 +231,7 @@ void analyse() {
       } else {
         printf("Free\n");
       }
+      printf("Current = %p\n", ch);
       printf("Next = %p\n", (ch -> next));
       printf("Prev = %p\n", (ch -> prev));
       printf("\n");
