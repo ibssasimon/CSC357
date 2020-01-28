@@ -98,13 +98,41 @@ int main(int argc, char *argv[]) {
       unsigned char g1 = getColor(imageData, infoHeader.biWidth, x, y, 1);
       unsigned char r1 = getColor(imageData, infoHeader.biWidth, x, y, 2);
 
+      int brightB1 = (int)b1;
+      brightB1 = brightB1 + (brightness) * 255;
+
+      int brightG1 = (int)g1;
+      brightG1 = brightG1 + (brightness) * 255;
+
+      int brightR1 = (int)r1;
+      brightR1 = brightR1 + (brightness) * 255;
+
+      if(brightB1 > 255) {
+        brightB1 = 255;
+      }
+
+      if(brightG1 > 255) {
+        brightG1 = 255;
+      }
+
+      if(brightR1 > 255) {
+        brightR1 = 255;
+      }
+
+      brightB1 = (unsigned char)brightB1;
+      brightG1 = (unsigned char)brightG1;
+      brightR1 = (unsigned char)brightR1;
+
+
+
+
 
 
       // assign into final image data
 
-      finalImageData[(x * 3)  +  y*infoHeader.biWidth*3 + 0] = b1;
-      finalImageData[(x * 3)  + y*infoHeader.biWidth*3 + 1] = g1;
-      finalImageData[(x * 3)  + y*infoHeader.biWidth*3 + 2] = r1;
+      finalImageData[(x * 3)  +  y*infoHeader.biWidth*3 + 0] = brightB1;
+      finalImageData[(x * 3)  + y*infoHeader.biWidth*3 + 1] = brightG1;
+      finalImageData[(x * 3)  + y*infoHeader.biWidth*3 + 2] = brightR1;
 
     }
   }
