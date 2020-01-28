@@ -77,8 +77,7 @@ int main(int argc, char *argv[]) {
   //fseek(file, fileHeader.bfOffBits, SEEK_SET);
   unsigned char* imageData = (unsigned char*)mmap(NULL, infoHeader.biSizeImage, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   unsigned char* finalImageData = (unsigned char*)mmap(NULL, infoHeader.biSizeImage, PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-  //unsigned char* imageData = (unsigned char*)malloc(infoHeader.biSizeImage);
-  //unsigned char* finalImageData = (unsigned char*)malloc(infoHeader.biSizeImage);
+
 
 
   fread(imageData, 1, infoHeader.biSizeImage, file);
