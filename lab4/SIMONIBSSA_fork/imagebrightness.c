@@ -160,7 +160,6 @@ int main(int argc, char *argv[]) {
 }
 
 
-
 // function to manipulate image data
 unsigned char getColor(unsigned char* imageData, int width, int x, int y, int color) {
   int bytesPerLine = width * 3;
