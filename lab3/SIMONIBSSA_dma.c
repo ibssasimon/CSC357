@@ -27,7 +27,7 @@ void myfree(BYTE* myaddres);
 void merge(chunkhead* chunk1, chunkhead* chunk2);
 void mergeMult(chunkhead* chunk1, chunkhead* chunk2, chunkhead* chunk3);
 BYTE* split(chunkhead* chunk, int size);
-void analyse();
+void analyze();
 
 
 
@@ -43,13 +43,31 @@ int main() {
 
 
 
-  unsigned char* a = mymalloc(1000);
-  unsigned char* b = mymalloc(1000);
-  unsigned char* c = mymalloc(1000);
+//unsigned char* a = mymalloc(1000);
+//unsigned char* b = mymalloc(1000);
+//unsigned char* c = mymalloc(1000);
+//myfree(b);
+//myfree(a);
+//analyze();
 
-  myfree(b);
-  myfree(a);
-  analyse();
+
+
+unsigned char* a = mymalloc(1000);
+
+unsigned char* b = mymalloc(1024);
+unsigned char* c = mymalloc(1000);
+unsigned char* d = mymalloc(3000);
+analyze();
+myfree(c);
+analyze();
+c = mymalloc(1000);
+analyze();
+b[0] = b[1023] = 0;
+myfree(b);
+myfree(d);
+analyze();
+myfree(c);
+analyze();
 
   return 0;
 }
@@ -72,9 +90,12 @@ BYTE* mymalloc(unsigned int size) {
       return 0;
     }
 
-    if(ch -> info == 0 && ch -> size >= size) {
+    if(ch -> info == 0 && ch -> size > size) {
       BYTE* newChunkAddress = split(ch, size);
       return newChunkAddress;
+    } else if(ch -> info == 0 && ch -> size == size){
+      ch-> info = 1;
+      return (BYTE*)ch + sizeof(chunkhead);
     }
 
   }
@@ -101,6 +122,8 @@ void myfree(BYTE* myaddress) {
     } else {
       isNextFree = 1;
     }
+  } else {
+    isNextOccupied = 1;
   }
 
   if (chunkheadPrev) {
@@ -143,7 +166,7 @@ void myfree(BYTE* myaddress) {
 
   
     // ch next is occupied, ch prev is occupied (1)
-    if(isNextOccupied == 1 && isPrevOccupied == 1) {
+    if(isNextFree == 0 && isPrevOccupied == 1) {
       return;
     }
 
@@ -167,7 +190,6 @@ void myfree(BYTE* myaddress) {
 
     // ch next is free, ch prev is occupied (3)
     if(isNextFree == 1 && isPrevFree == 0) {
-    printf("\nGFUHIEJLWKO\n");
 
       ((chunkhead*)ch) -> size += ((chunkhead*)ch -> next) -> size + sizeof(chunkhead);
 
@@ -182,13 +204,14 @@ void myfree(BYTE* myaddress) {
     }
 
     // ch next is free, ch prev is free (4)
-    if(isNextFree == 1 && isPrevFree == 1) {
+    if(isNextFree == 1 && isPrevOccupied == 0) {
         // previous size incremented by next and current size
       ((chunkhead*)ch -> prev) -> size += ((chunkhead*)ch) -> size  + ((chunkhead*)ch -> next) -> size + sizeof(chunkhead);
       // potential next is ch -> next next
       chunkhead* potentialNext = ((chunkhead*)ch -> next) -> next;
       // chunheadPrev -> next = potential -> next
-      chunkheadPrev -> next = potentialNext -> next;
+
+      chunkheadPrev -> next = potentialNext;
       // if potential next not null, potentialNext prev = chunkhead prev
       if(potentialNext!= NULL) {
         potentialNext -> prev = ch -> prev;
@@ -217,7 +240,9 @@ BYTE* split(chunkhead* chunk, int size) {
   return ((BYTE*)chunk) + sizeof(chunkhead);
 }
 
-void analyse() {
+void analyze() {
+
+  printf("-----PRINTING HEAP NOW ------------\n");
   int i = 0;
   chunkhead* ch = (chunkhead*)myheap;
 
