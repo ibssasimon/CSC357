@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 
   if(parallel == 1) {
     // mechanism to link child and parent
-    int *g;
+    int g;
 
     // determine bottom half height
     unsigned int bottomHalfLimit = infoHeader.biHeight / 2;
