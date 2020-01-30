@@ -59,13 +59,13 @@ int main(int argc, char *argv[]) {
   
   int x;
   int y;
-  double brightness = 0;
+  double brightness = 0.5;
   //brightness = strtod(argv[2], &err);
 
   int parallel = 0;
   //strtol(argv[3], &err, 10);
 
-  file = fopen("lion.bmp", "rb");
+  file = fopen("tunnel.bmp", "rb");
 
   // null pointer check
   if(file == NULL) {
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
       unsigned int index = 0;
       for(y = 0; y < bottomHalfLimit; y++) {
 
-      int bytesPerLine = y * infoHeader.biWidth * 3;
+      int bytesPerLine = infoHeader.biWidth * 3;
       if(bytesPerLine % 4 != 0) {
         bytesPerLine = bytesPerLine + (4 - (bytesPerLine % 4));
       }
@@ -145,9 +145,9 @@ int main(int argc, char *argv[]) {
         brightG1 = (unsigned char)brightG1;
         brightR1 = (unsigned char)brightR1;
         // assign into final image data
-        finalImageData[(x * 3)  +  y*infoHeader.biWidth*3 + 0] = brightB1;
-        finalImageData[(x * 3)  + y*infoHeader.biWidth*3 + 1] = brightG1;
-        finalImageData[(x * 3)  + y*infoHeader.biWidth*3 + 2] = brightR1;
+        finalImageData[(x * 3)  + y * bytesPerLine + 0] = brightB1;
+        finalImageData[(x * 3)  + y * bytesPerLine + 1] = brightG1;
+        finalImageData[(x * 3)  + y * bytesPerLine + 2] = brightR1;
       }
 
     }
@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
       unsigned int index = 0;
       for(y = bottomHalfLimit; y < infoHeader.biHeight; y++) {
 
-      int bytesPerLine = y * infoHeader.biWidth * 3;
+      int bytesPerLine = infoHeader.biWidth * 3;
       if(bytesPerLine % 4 != 0) {
         bytesPerLine = bytesPerLine + (4 - (bytesPerLine % 4));
       }
@@ -194,9 +194,9 @@ int main(int argc, char *argv[]) {
         brightG1 = (unsigned char)brightG1;
         brightR1 = (unsigned char)brightR1;
         // assign into final image data
-        finalImageData[(x * 3)  +  y*infoHeader.biWidth*3 + 0] = brightB1;
-        finalImageData[(x * 3)  + y*infoHeader.biWidth*3 + 1] = brightG1;
-        finalImageData[(x * 3)  + y*infoHeader.biWidth*3 + 2] = brightR1;
+        finalImageData[(x * 3)  + y * bytesPerLine + 0] = brightB1;
+        finalImageData[(x * 3)  + y * bytesPerLine + 1] = brightG1;
+        finalImageData[(x * 3)  + y * bytesPerLine + 2] = brightR1;
       }
 
     }
@@ -207,7 +207,7 @@ int main(int argc, char *argv[]) {
     unsigned int index = 0;
     for(y = 0; y < infoHeader.biHeight; y++) {
 
-    int bytesPerLine = y * infoHeader.biWidth * 3;
+    int bytesPerLine = infoHeader.biWidth * 3;
     if(bytesPerLine % 4 != 0) {
       bytesPerLine = bytesPerLine + (4 - (bytesPerLine % 4));
     }
@@ -243,9 +243,9 @@ int main(int argc, char *argv[]) {
       brightG1 = (unsigned char)brightG1;
       brightR1 = (unsigned char)brightR1;
       // assign into final image data
-      finalImageData[(x * 3)  +  y*infoHeader.biWidth*3 + 0] = brightB1;
-      finalImageData[(x * 3)  + y*infoHeader.biWidth*3 + 1] = brightG1;
-      finalImageData[(x * 3)  + y*infoHeader.biWidth*3 + 2] = brightR1;
+      finalImageData[(x * 3)  + (y * bytesPerLine) + 0] = brightB1;
+      finalImageData[(x * 3)  + (y * bytesPerLine) + 1] = brightG1;
+      finalImageData[(x * 3)  + (y * bytesPerLine) + 2] = brightR1;
     }
   }
   }
