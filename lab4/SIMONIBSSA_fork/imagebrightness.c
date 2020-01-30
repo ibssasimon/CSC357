@@ -49,26 +49,25 @@ int main(int argc, char *argv[]) {
   char* err;
 
 
-  /*if(argc == 5) {
+  if(argc == 5) {
     file = fopen(argv[1],"rb");
   } else {
     printf("enter correct args: ./yourprogram [IMAGEFILE] [BRIGHTNESS] [PARALLEL] [OUTPUTFILE]\n");
     return 0;
-  }*/
+  }
   
   
   int x;
   int y;
-  double brightness = 0.5;
-  //brightness = strtod(argv[2], &err);
+  double brightness = strtod(argv[2], &err);
 
-  int parallel = 0;
-  //strtol(argv[3], &err, 10);
+  int parallel = strtol(argv[3], &err, 10);
 
-  file = fopen("tunnel.bmp", "rb");
+  file = fopen(argv[1], "rb");
 
   // null pointer check
   if(file == NULL) {
+    printf("File does not exist!\n");
     return 0;
   }
 
@@ -93,11 +92,6 @@ int main(int argc, char *argv[]) {
 
 
   if(parallel == 1) {
-    /*if(fork() == 0) {
-      // child. copy top half to top of image
-    } else {
-      // parent. copy bottom half to top half
-    }*/
     // mechanism to link child and parent
     int *g;
 
@@ -253,7 +247,7 @@ int main(int argc, char *argv[]) {
   
 
   // allocate result image mem
-  file = fopen("result.bmp", "wb+");
+  file = fopen(argv[4], "wb+");
 
   fwrite(&fileHeader.bfType, 1, sizeof(fileHeader.bfType), file);
   fwrite(&fileHeader.bfSize, 1, sizeof(fileHeader.bfSize), file);
