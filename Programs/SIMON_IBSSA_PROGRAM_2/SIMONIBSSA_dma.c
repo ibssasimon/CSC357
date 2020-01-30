@@ -48,6 +48,9 @@ int main() {
 
   top = sbrk(0);
 
+  // if heapsize is zero. SPECIAL case: allocate chunkhead + size
+  // brk(size + chunkhead)
+
   printf("%p\n", top);
   return 0;
 
