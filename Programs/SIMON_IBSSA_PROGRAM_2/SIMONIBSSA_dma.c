@@ -77,6 +77,11 @@ int main() {
 
 
 BYTE* mymalloc(unsigned int size) {
+  // use sbrk to move program break
+  // set to a variable so you can return that value
+  top = sbrk(size);
+  
+
   // get first chunkhead, typecasted
   chunkhead* ch = (chunkhead*)myheap;
 
@@ -141,31 +146,6 @@ void myfree(BYTE* myaddress) {
 
 
   ch -> info = 0;
-  
-  // preventing segfault by null check
-
-  /*if( ch -> prev == NULL && ((chunkhead*)ch -> next) -> info == 1) {
-    ((chunkhead*)ch -> next) -> size += ((chunkhead*)ch) -> size + sizeof(chunkhead);
-
-      chunkhead* potentialPrev = ch -> prev;
-
-      chunkheadNext -> prev = potentialPrev;
-
-      return;
-  }
-
-  if( ch -> prev == NULL && ((chunkhead*)ch -> next) -> info == 0) {
-    ((chunkhead*)ch -> next) -> size += ((chunkhead*)ch) -> size + sizeof(chunkhead);
-
-      chunkhead* potentialPrev = ch -> prev;
-
-      chunkheadNext -> prev = potentialPrev;
-      chunkheadNext = ch;
-      ch = NULL;
-      return;
-  }*/
-
-
   
     // ch next is occupied, ch prev is occupied (1)
     if(isNextFree == 0 && isPrevOccupied == 1) {
