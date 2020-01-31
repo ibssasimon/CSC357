@@ -7,7 +7,7 @@
 
 
 // pagesize definition
-#define PAGESIZE 1024
+#define PAGESIZE 4096
 #define _1MB 1048576 
 
 
@@ -15,7 +15,7 @@
 int heapsize = 0;
 
 unsigned char myheap[_1MB];
-void* top;
+void* top = NULL;
 
 typedef unsigned char BYTE;
 
@@ -40,21 +40,14 @@ void analyze();
 int main() {
   printf("Program 2\n");
   // defining first chunkhead
-  chunkhead *ch = (chunkhead*)myheap;
-  ch -> info = 0;
-  ch -> size = _1MB - sizeof(chunkhead);
-  ch -> next = 0;
-  ch -> prev = 0;
-
-  top = sbrk(0);
-
   // if heapsize is zero. SPECIAL case: allocate chunkhead + size
   // brk(size + chunkhead)
 
   printf("%p\n", top);
-  return 0;
 
-  unsigned char* a = mymalloc(1000);
+  unsigned char* a = mymalloc(4000);
+  analyze();
+  return 0;
 
   unsigned char* b = mymalloc(1024);
   unsigned char* c = mymalloc(1000);
@@ -79,11 +72,7 @@ int main() {
 BYTE* mymalloc(unsigned int size) {
   // use sbrk to move program break
   // set to a variable so you can return that value
-  top = sbrk(size);
-  
-
-  // get first chunkhead, typecasted
-  chunkhead* ch = (chunkhead*)myheap;
+  // if top is null crearte first chunk
 
   size = (size / PAGESIZE + 1) * PAGESIZE;
 
@@ -92,20 +81,40 @@ BYTE* mymalloc(unsigned int size) {
     return 0;
   }
 
-  for(;ch != NULL; ch = (chunkhead*) ch->next) {
-    if(ch == 0) {
-      return 0;
-    }
+  
 
-    if(ch -> info == 0 && ch -> size > size) {
-      BYTE* newChunkAddress = split(ch, size);
-      return newChunkAddress;
-    } else if(ch -> info == 0 && ch -> size == size){
-      ch-> info = 1;
-      return (BYTE*)ch + sizeof(chunkhead);
-    }
+  // allocating first chunk
+  if(top == NULL) {
+    top = sbrk(size + sizeof(chunkhead));
+    heapsize += size + sizeof(chunkhead);
+    chunkhead* current = top;
+    current -> size = size;
+    current -> info = 1;
+    current -> next = NULL;
+    current -> prev = NULL;
+    return current;
+  } else {
+    chunkhead* current = top;
+    for(;current != NULL; current = (chunkhead*) current->next) {
+      if(current == 0) {
+        return 0;
+      }
+
+      if(current -> info == 0 && current -> size > size) {
+        BYTE* newChunkAddress = split(current, size);
+        return newChunkAddress;
+      } else if(current -> info == 0 && current -> size == size){
+          current-> info = 1;
+        return (BYTE*)current + sizeof(chunkhead);
+      }
 
   }
+  }
+
+  
+  
+
+ 
   return 0;
 }
 
@@ -226,7 +235,7 @@ void analyze() {
 
   printf("-----PRINTING HEAP NOW ------------\n");
   int i = 0;
-  chunkhead* ch = (chunkhead*)myheap;
+  chunkhead* ch = top;
 
     for(;ch != NULL; ch = (chunkhead*) ch->next) {
       i++;
