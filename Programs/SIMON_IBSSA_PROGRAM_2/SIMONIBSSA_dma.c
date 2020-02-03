@@ -46,10 +46,9 @@ int main() {
   printf("%p\n", top);
 
   unsigned char* a = mymalloc(4000);
+  unsigned char* b = mymalloc(1024);
   analyze();
   return 0;
-
-  unsigned char* b = mymalloc(1024);
   unsigned char* c = mymalloc(1000);
   unsigned char* d = mymalloc(3000);
   analyze();
@@ -90,7 +89,6 @@ BYTE* mymalloc(unsigned int size) {
     chunkhead* current = top;
     current -> size = size;
     current -> info = 1;
-    current -> next = NULL;
     current -> prev = NULL;
     return current;
   } else {
