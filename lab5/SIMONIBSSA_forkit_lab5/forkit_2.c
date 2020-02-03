@@ -7,19 +7,26 @@ int main() {
 
   if(fork() == 0) {
     // child 1st
-    printf("1\n");
+
+    if(fork() == 0) {
+      // child 2nd
+      printf("1\n");
+      return 1;
+    } else {
+      // parent 2nd
+      wait(&g);
+      printf("2\n");
+    }
     return 1;
   } else {
     // parent 1st
     wait(&g);
-    printf("2\n");
-
     if(fork() == 0) {
-      // child 2nd
+      // child 3rd
       printf("5\n");
       return 1;
     } else {
-      // parent 2nd
+      // parent 3rd
       wait(&g);
       if(fork() == 0) {
         // child 3rd
