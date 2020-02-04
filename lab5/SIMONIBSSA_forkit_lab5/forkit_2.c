@@ -22,12 +22,10 @@ int main() {
     // parent 1st
     wait(&g);
     if(fork() == 0) {
+      wait(&g);
       // child 3rd
       printf("5\n");
-      return 1;
     } else {
-      // parent 3rd
-      wait(&g);
       if(fork() == 0) {
         // child 3rd
         printf("3\n");
@@ -36,6 +34,7 @@ int main() {
         wait(&g);
         printf("4\n");
       }
+      return 1;
     }
   }
 }
