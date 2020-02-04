@@ -52,13 +52,13 @@ int main() {
 
 
 
-unsigned char* a = mymalloc(1000);
-
+unsigned char* a = mymalloc(3000);
+myfree(a);
 unsigned char* b = mymalloc(1024);
-unsigned char* c = mymalloc(1000);
-unsigned char* d = mymalloc(3000);
+
 analyze();
-myfree(c);
+return 0;
+/*myfree(c);
 analyze();
 c = mymalloc(1000);
 analyze();
@@ -69,7 +69,7 @@ analyze();
 myfree(c);
 analyze();
 
-  return 0;
+  return 0;*/
 }
 
 

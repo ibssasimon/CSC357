@@ -33,6 +33,7 @@ void myfree(BYTE* myaddres);
 void merge(chunkhead* chunk1, chunkhead* chunk2);
 void mergeMult(chunkhead* chunk1, chunkhead* chunk2, chunkhead* chunk3);
 BYTE* split(chunkhead* chunk, int size);
+chunkhead* getLastChunk();
 void analyze();
 
 

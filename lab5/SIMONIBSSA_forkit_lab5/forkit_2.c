@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+
+// program should print 1 2 3 4 5
 int main() {
 
   int g;
@@ -22,17 +24,19 @@ int main() {
     // parent 1st
     wait(&g);
     if(fork() == 0) {
+      // ERROR HERE: program doesn't wait for Else statement to return 1 before printing 5.
       wait(&g);
       // child 3rd
       printf("5\n");
     } else {
       if(fork() == 0) {
-        // child 3rd
+        // child 4th
         printf("3\n");
         return 1;
       } else {
         wait(&g);
         printf("4\n");
+        return 1;
       }
       return 1;
     }
