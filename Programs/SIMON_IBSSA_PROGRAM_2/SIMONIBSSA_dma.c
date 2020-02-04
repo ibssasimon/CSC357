@@ -45,13 +45,10 @@ int main() {
 
   printf("%p\n", top);
 
-  unsigned char* a = mymalloc(4000);
-  unsigned char* b = mymalloc(4000);
-  unsigned char* c = mymalloc(4000);
-  unsigned char* d = mymalloc(4000);
+  unsigned char* c = mymalloc(8000);
   myfree(c);
-  myfree(b);
-  myfree(d);
+  analyze();
+  unsigned char* d = mymalloc(4000);
   analyze();
   return 0;
 }
@@ -84,8 +81,10 @@ BYTE* mymalloc(unsigned int size) {
   } else {
     chunkhead* current = top;
 
-    while(current -> next != NULL) {
-      current = current -> next;
+    for(;current != NULL; current = (chunkhead*) current -> next) {
+      if(current == 0) {
+        return 0;
+      }
 
       if(current -> info == 0 && current -> size > size) {
         BYTE* newChunkAddress = split(current, size);
@@ -224,8 +223,8 @@ void myfree(BYTE* myaddress) {
 
 BYTE* split(chunkhead* chunk, int size) {
   // implementation of split function. Should return address of new chunk.
-  BYTE* newChunkAddress = ((BYTE*)chunk) + sizeof(chunkhead) + size;
-  chunkhead* newChunk = sbrk(size);
+  /*BYTE* newChunkAddress = ((BYTE*)chunk) + sizeof(chunkhead) + size;
+  chunkhead* newChunk = newChunkAddress;
 
 
   newChunk -> size = (chunk-> size) - sizeof(chunkhead) - size;
@@ -238,7 +237,27 @@ BYTE* split(chunkhead* chunk, int size) {
   newChunk -> prev = (BYTE*)chunk;
   chunk -> prev = ((chunkhead*)newChunk -> prev) -> prev;
 
-  return ((BYTE*)chunk) + sizeof(chunkhead);
+  return ((BYTE*)chunk) + sizeof(chunkhead);*/
+
+  BYTE* newChunkAddress = (BYTE*)chunk + size;
+  chunkhead* newChunk = newChunkAddress;
+
+  newChunk -> size = size;
+  // don't need to increment heapsize since splitting
+  //heapsize += newChunk -> size;
+
+  chunk -> size = (chunk ->size) - size;
+  chunk -> info = 0;
+  chunk -> next = (BYTE*)newChunk;
+
+  newChunk -> info = 1;
+  newChunk -> next = 0;
+  newChunk -> prev = (BYTE*)chunk;
+  chunk -> prev = ((chunkhead*)newChunk -> prev) -> prev;
+  return newChunkAddress;
+
+
+
 }
 
 void analyze() {
@@ -283,10 +302,11 @@ void analyze() {
     }*/
 
   printf("--------HEAP SIZE: %d --------\n", heapsize);
+  printf("Program break: %p\n", sbrk(0));
 }
 
 
-chunkhead* get_last_chunk() {
+chunkhead* getLastChunk() {
   if(!top) {
     return NULL;
   }
