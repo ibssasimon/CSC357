@@ -47,22 +47,12 @@ int main() {
 
   unsigned char* a = mymalloc(4000);
   unsigned char* b = mymalloc(4000);
-  unsigned char* c = mymalloc(1000);
-  unsigned char* d = mymalloc(3000);
-  //analyze();
-  //return 0;
-  //analyze();
-  //myfree(c);
-  //analyze();
-  c = mymalloc(1000);
-  //analyze();
-  b[0] = b[1023] = 0;
- // myfree(b);
-  //myfree(d);
-  //analyze();
-  //myfree(c);
+  unsigned char* c = mymalloc(4000);
+  unsigned char* d = mymalloc(4000);
+  myfree(c);
+  myfree(b);
+  myfree(d);
   analyze();
-
   return 0;
 }
 
@@ -142,7 +132,7 @@ BYTE* mymalloc(unsigned int size) {
 void myfree(BYTE* myaddress) {
   // implementation of free function
   chunkhead* ch;
-  ch = (chunkhead*)(myaddress - sizeof(chunkhead));
+  ch = (chunkhead*)(myaddress);
 
   chunkhead* chunkheadNext = (chunkhead*)ch -> next;
   chunkhead* chunkheadPrev = (chunkhead*)ch -> prev;
@@ -235,7 +225,7 @@ void myfree(BYTE* myaddress) {
 BYTE* split(chunkhead* chunk, int size) {
   // implementation of split function. Should return address of new chunk.
   BYTE* newChunkAddress = ((BYTE*)chunk) + sizeof(chunkhead) + size;
-  chunkhead* newChunk = (chunkhead*)newChunkAddress;
+  chunkhead* newChunk = sbrk(size);
 
 
   newChunk -> size = (chunk-> size) - sizeof(chunkhead) - size;
@@ -293,4 +283,15 @@ void analyze() {
     }*/
 
   printf("--------HEAP SIZE: %d --------\n", heapsize);
+}
+
+
+chunkhead* get_last_chunk() {
+  if(!top) {
+    return NULL;
+  }
+
+  chunkhead* ch = (chunkhead*)top;
+  for (; ch->next; ch = (chunkhead*)ch->next);
+  return ch;
 }
