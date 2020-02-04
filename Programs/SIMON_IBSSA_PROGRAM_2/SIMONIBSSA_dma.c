@@ -46,21 +46,21 @@ int main() {
   printf("%p\n", top);
 
   unsigned char* a = mymalloc(4000);
-  unsigned char* b = mymalloc(1024);
-  analyze();
-  return 0;
+  unsigned char* b = mymalloc(4000);
   unsigned char* c = mymalloc(1000);
   unsigned char* d = mymalloc(3000);
-  analyze();
-  myfree(c);
-  analyze();
+  //analyze();
+  //return 0;
+  //analyze();
+  //myfree(c);
+  //analyze();
   c = mymalloc(1000);
-  analyze();
+  //analyze();
   b[0] = b[1023] = 0;
-  myfree(b);
-  myfree(d);
-  analyze();
-  myfree(c);
+ // myfree(b);
+  //myfree(d);
+  //analyze();
+  //myfree(c);
   analyze();
 
   return 0;
@@ -93,7 +93,20 @@ BYTE* mymalloc(unsigned int size) {
     return current;
   } else {
     chunkhead* current = top;
-    for(;current != NULL; current = (chunkhead*) current->next) {
+
+    while(current -> next != NULL) {
+      current = current -> next;
+
+      if(current -> info == 0 && current -> size > size) {
+        BYTE* newChunkAddress = split(current, size);
+        return newChunkAddress;
+      } else if(current -> info == 0 && current -> size == size){
+          current-> info = 1;
+        return (BYTE*)current + sizeof(chunkhead);
+      }
+    }
+
+    /*for(;current != NULL; current = (chunkhead*) current->next) {
       if(current == 0) {
         return 0;
       }
@@ -105,8 +118,17 @@ BYTE* mymalloc(unsigned int size) {
           current-> info = 1;
         return (BYTE*)current + sizeof(chunkhead);
       }
+    }*/
+    chunkhead* new = sbrk(size);
+    heapsize += size;
 
-  }
+    new -> size = size;
+    new -> info = 1;
+    new -> prev = current;
+    new -> next = NULL;
+    current -> next = new;
+
+    return new;
   }
 
   
@@ -235,7 +257,26 @@ void analyze() {
   int i = 0;
   chunkhead* ch = top;
 
-    for(;ch != NULL; ch = (chunkhead*) ch->next) {
+  while(ch != NULL) {
+    i++;
+    printf("Chunk #%d\n", i);
+    printf("Size = %d bytes\n", ch -> size);
+
+    if(ch -> info == 1) {
+      printf("Occupied\n");
+    } else {
+      printf("Free\n");
+    }
+    printf("Current = %p\n", ch);
+    printf("Next = %p\n", (ch -> next));
+    printf("Prev = %p\n", (ch -> prev));
+    printf("\n");
+
+    ch = ch -> next;
+  }
+
+  
+    /*for(;ch != NULL; ch = (chunkhead*) ch->next) {
       i++;
       printf("Chunk #%d\n", i);
       printf("Size = %d bytes\n", ch -> size);
@@ -249,5 +290,7 @@ void analyze() {
       printf("Next = %p\n", (ch -> next));
       printf("Prev = %p\n", (ch -> prev));
       printf("\n");
-    }
+    }*/
+
+  printf("--------HEAP SIZE: %d --------\n", heapsize);
 }
