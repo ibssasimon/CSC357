@@ -9,7 +9,7 @@ int main()
     char userIN[100];
     char *text[10];
     
-    
+    // allocate memory
     for(int i = 0; i < 10; i++)
     {
         text[i] = mmap(NULL, 100*sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0 );
@@ -19,10 +19,11 @@ int main()
     // loop over user input
     while(1)
     {
+        // prompt / scan
         printf("Enter a word: \n");
         scanf("%s", userIN);
 
-        // 
+        // check if print using strcmp
         if(strcmp(userIN, "print") == 0)
         {
             printf("these are the elements in the heap:\n");
@@ -33,11 +34,12 @@ int main()
                     printf("%s\n", text[i]);
                 }
             }
-        }
+        } // check if quit using strcmp
         else if(strcmp(userIN, "quit") == 0)//quit program
         {
             for(int i = 0; i < 10; i++)
             {
+                // munmap(address, size in bytes)
                 munmap(text[i], 100);
             }
             break;
