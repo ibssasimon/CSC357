@@ -14,7 +14,6 @@
 // global array declaration heapsize which is initialized to zero
 int heapsize = 0;
 
-unsigned char myheap[_1MB];
 void* top = NULL;
 
 typedef unsigned char BYTE;
@@ -34,6 +33,7 @@ void merge(chunkhead* chunk1, chunkhead* chunk2);
 void mergeMult(chunkhead* chunk1, chunkhead* chunk2, chunkhead* chunk3);
 BYTE* split(chunkhead* chunk, int size);
 chunkhead* getLastChunk();
+void analyse();
 void analyze();
 
 
@@ -44,13 +44,40 @@ int main() {
   // if heapsize is zero. SPECIAL case: allocate chunkhead + size
   // brk(size + chunkhead)
 
-  printf("%p\n", top);
+  //printf("%p\n", top);
 
-  unsigned char* c = mymalloc(8000);
-  myfree(c);
+ //unsigned char* c = mymalloc(8000);
+  //myfree(c);
+  //analyze();
+  //unsigned char* d = mymalloc(4000);
+  //analyze();
+
+
+
+  BYTE* a[100];
+  analyze();//50% points
+  for(int i=0;i<100;i++){
+    a[i]= mymalloc(1000);
+  }
   analyze();
-  unsigned char* d = mymalloc(4000);
-  analyze();
+
+  for(int i=0;i<90;i++) {
+    myfree(a[i]);
+  }
+  analyze(); //50% of points if this is correct
+  myfree(a[95]);
+  a[95] = mymalloc(1000);
+  analyze();//25% points, this new chunk should fill the smaller free one
+  //(best fit)
+  for(int i=90;i<100;i++) {
+    myfree(a[i]);
+  }
+
+
+  analyze();// 25% should be an empty heap now with the start address
+  //from the program start*/
+
+
   return 0;
 }
 
@@ -114,9 +141,9 @@ BYTE* mymalloc(unsigned int size) {
 
     new -> size = size;
     new -> info = 1;
-    new -> prev = current;
+    new -> prev = getLastChunk();
     new -> next = NULL;
-    current -> next = new;
+    getLastChunk() -> next = new;
 
     return new;
   }
@@ -261,7 +288,7 @@ BYTE* split(chunkhead* chunk, int size) {
 
 }
 
-void analyze() {
+void analyse() {
 
   printf("-----PRINTING HEAP NOW ------------\n");
   int i = 0;
@@ -305,6 +332,26 @@ void analyze() {
   printf("--------HEAP SIZE: %d --------\n", heapsize);
   printf("Program break: %p\n", sbrk(0));
 }
+
+void analyze() {
+printf("\n--------------------------------------------------------------\n");
+  if(!top) {
+  printf("no heap, program break on address: %x\n", sbrk(0));
+  return;
+  }
+  chunkhead* ch = (chunkhead*)top;
+  for (int no=0; ch; ch = (chunkhead*)ch->next,no++) {
+  printf("%d | current addr: %x |", no, ch);
+  printf("size: %d | ", ch->size);
+  printf("info: %d | ", ch->info);
+  printf("next: %x | ", ch->next);
+  printf("prev: %x", ch->prev);
+  printf(" \n");
+  }
+  printf("program break on address: %x\n",sbrk(0));
+}
+
+
 
 
 chunkhead* getLastChunk() {
