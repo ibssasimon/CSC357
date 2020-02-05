@@ -25,10 +25,6 @@ int main() {
     wait(&g);
     if(fork() == 0) {
       // ERROR HERE: program doesn't wait for Else statement to return 1 before printing 5.
-      wait(&g);
-      // child 3rd
-      printf("5\n");
-    } else {
       if(fork() == 0) {
         // child 4th
         printf("3\n");
@@ -38,6 +34,10 @@ int main() {
         printf("4\n");
         return 1;
       }
+      // child 3rd
+    } else {
+      wait(&g);
+      printf("5\n");
       return 1;
     }
   }

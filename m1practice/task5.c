@@ -15,9 +15,14 @@ int main()
         text[i] = mmap(NULL, 100*sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0 );
         text[i][0] = 0;
     }
+
+    // loop over user input
     while(1)
     {
+        printf("Enter a word: \n");
         scanf("%s", userIN);
+
+        // 
         if(strcmp(userIN, "print") == 0)
         {
             printf("these are the elements in the heap:\n");
@@ -39,6 +44,7 @@ int main()
         }
         else
         {
+            // checks for duplicates
             for(int i = 0; i < 10; i++)
             {
                 if(strcmp(text[i], userIN) == 0)//if the item is already in the list
@@ -48,6 +54,8 @@ int main()
                     
                 }
             }
+
+            // inserts into list
             for(int i = 0; i < 10; i++)
             {
                 if(text[i][0] == 0)

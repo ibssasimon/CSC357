@@ -17,25 +17,27 @@ int i;
 //printf("%d", 1);
 int main() {
   fflush(0);
+
   if (fork() == 0) {
-    fflush(0);
-    if (fork() == 0) {
-      printf("%s\n", "A");
-      return 0;
-    } else {   
-      wait(&i);
-      printf("%s\n", "B");
-      return 0;
-    }
-  } else {
     wait(&i);
+    fflush(0);
     if (fork() == 0) {
       printf("%s\n", "C");
       return 0;
-    } else {
+    } else {   
       wait(&i);
       printf("%s\n", "D");
+      return 0;
     }
+  } else {
+    if (fork() == 0) {
+      printf("%s\n", "A");
+      return 0;
+    } else {
+      wait(&i);
+      printf("%s\n", "B");
+    }
+    return 1; 
 
   } 
 return 0;
