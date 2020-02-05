@@ -55,17 +55,19 @@ int main() {
 
 
   BYTE* a[100];
+  printf("first: \n");
   analyze();//50% points
   for(int i=0;i<100;i++){
     a[i]= mymalloc(1000);
   }
-  analyze();
-
   for(int i=0;i<90;i++) {
     myfree(a[i]);
   }
+  printf("second: \n");
   analyze(); //50% of points if this is correct
+  printf("third: \n");
   myfree(a[95]);
+  analyze();
   a[95] = mymalloc(1000);
   analyze();//25% points, this new chunk should fill the smaller free one
   //(best fit)
@@ -75,7 +77,8 @@ int main() {
 
 
   analyze();// 25% should be an empty heap now with the start address
-  //from the program start*/
+  //from the program start
+
 
 
   return 0;
@@ -86,7 +89,12 @@ int main() {
 BYTE* mymalloc(unsigned int size) {
   // use sbrk to move program break
   // set to a variable so you can return that value
-  // if top is null crearte first chunk
+  // if top is null create first chunk
+
+  chunkhead* best_candidate = NULL;
+
+
+  size += sizeof(chunkhead);
 
   size = (size / PAGESIZE + 1) * PAGESIZE;
 
@@ -110,17 +118,38 @@ BYTE* mymalloc(unsigned int size) {
     chunkhead* current = top;
 
     for(;current != NULL; current = (chunkhead*) current -> next) {
+
       if(current == 0) {
         return 0;
       }
 
-      if(current -> info == 0 && current -> size > size) {
-        BYTE* newChunkAddress = split(current, size);
+      if(current -> info == 0 && current -> size >= size) {
+        if(best_candidate != NULL) {
+          if(best_candidate->size > current -> size) {
+            best_candidate = current;
+            }
+        } else {
+          best_candidate = current;
+        }
+
+        if(best_candidate == NULL) {
+          chunkhead* newChunk = sbrk(size + sizeof(chunkhead));
+          newChunk -> info = 1;
+          newChunk -> size = size;
+          newChunk -> prev = getLastChunk();
+          newChunk -> next = NULL;
+          return newChunk;
+        }
+
+        if(best_candidate -> size == size) {
+          best_candidate-> info = 1;
+          return (BYTE*)current + sizeof(chunkhead);
+        }
+
+        BYTE* newChunkAddress = split(best_candidate, size);
         return newChunkAddress;
-      } else if(current -> info == 0 && current -> size == size){
-          current-> info = 1;
-        return (BYTE*)current + sizeof(chunkhead);
       }
+
     }
 
     /*for(;current != NULL; current = (chunkhead*) current->next) {
@@ -158,8 +187,15 @@ BYTE* mymalloc(unsigned int size) {
 
 void myfree(BYTE* myaddress) {
   // implementation of free function
+
   chunkhead* ch;
   ch = (chunkhead*)(myaddress);
+
+  if(ch -> info == 0 && ch -> next == NULL && ch -> prev == NULL) {
+    ch = NULL;
+    return;
+  }
+
 
   chunkhead* chunkheadNext = (chunkhead*)ch -> next;
   chunkhead* chunkheadPrev = (chunkhead*)ch -> prev;
@@ -247,6 +283,8 @@ void myfree(BYTE* myaddress) {
       
       return;
   } 
+
+
 }
 
 BYTE* split(chunkhead* chunk, int size) {
@@ -267,7 +305,7 @@ BYTE* split(chunkhead* chunk, int size) {
 
   return ((BYTE*)chunk) + sizeof(chunkhead);*/
 
-  BYTE* newChunkAddress = (BYTE*)chunk + size;
+  BYTE* newChunkAddress = (BYTE*)chunk + size + sizeof(chunkhead);
   chunkhead* newChunk = newChunkAddress;
 
   newChunk -> size = size;
@@ -282,8 +320,7 @@ BYTE* split(chunkhead* chunk, int size) {
   newChunk -> next = 0;
   newChunk -> prev = (BYTE*)chunk;
   chunk -> prev = ((chunkhead*)newChunk -> prev) -> prev;
-  return newChunkAddress;
-
+  return newChunk;
 
 
 }
