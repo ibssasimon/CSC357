@@ -24,7 +24,6 @@ int main() {
     // parent 1st
     wait(&g);
     if(fork() == 0) {
-      // ERROR HERE: program doesn't wait for Else statement to return 1 before printing 5.
       if(fork() == 0) {
         // child 4th
         printf("3\n");
