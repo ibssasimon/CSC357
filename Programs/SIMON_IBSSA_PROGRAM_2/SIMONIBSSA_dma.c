@@ -91,11 +91,13 @@ BYTE* mymalloc(unsigned int size) {
   // set to a variable so you can return that value
   // if top is null create first chunk
 
+  // best candidate pointer
   chunkhead* best_candidate = NULL;
 
-
+  // increment size by chunkhead
   size += sizeof(chunkhead);
 
+  // make sure size is multiple of pagesize
   size = (size / PAGESIZE + 1) * PAGESIZE;
 
   if(size % PAGESIZE != 0) {
@@ -117,6 +119,7 @@ BYTE* mymalloc(unsigned int size) {
   } else {
     chunkhead* current = top;
 
+    // iterate through chunks
     for(;current != NULL; current = (chunkhead*) current -> next) {
 
       if(current == 0) {
