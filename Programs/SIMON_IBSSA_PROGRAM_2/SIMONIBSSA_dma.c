@@ -29,56 +29,27 @@ typedef struct chunkhead {
 // function declarations
 BYTE* mymalloc(unsigned int size);
 void myfree(BYTE* myaddres);
-void merge(chunkhead* chunk1, chunkhead* chunk2);
-void mergeMult(chunkhead* chunk1, chunkhead* chunk2, chunkhead* chunk3);
 BYTE* split(chunkhead* chunk, int size);
 chunkhead* getLastChunk();
-void analyse();
 void analyze();
 
 
 
 int main() {
-  printf("Program 2\n");
-  // defining first chunkhead
-  // if heapsize is zero. SPECIAL case: allocate chunkhead + size
-  // brk(size + chunkhead)
-
-  //printf("%p\n", top);
-
- //unsigned char* c = mymalloc(8000);
-  //myfree(c);
-  //analyze();
-  //unsigned char* d = mymalloc(4000);
-  //analyze();
-
-
-
   BYTE* a[100];
-  printf("first: \n");
   analyze();//50% points
-  for(int i=0;i<100;i++){
-    a[i]= mymalloc(1000);
-  }
-  for(int i=0;i<90;i++) {
-    myfree(a[i]);
-  }
-  printf("second: \n");
+  for(int i=0;i<100;i++)
+  a[i]= mymalloc(1000);
+  for(int i=0;i<90;i++)
+  myfree(a[i]);
   analyze(); //50% of points if this is correct
-  printf("third: \n");
   myfree(a[95]);
-  analyze();
   a[95] = mymalloc(1000);
   analyze();//25% points, this new chunk should fill the smaller free one
   //(best fit)
-  for(int i=90;i<100;i++) {
-    myfree(a[i]);
-  }
-
-
-  analyze();// 25% should be an empty heap now with the start address
-  //from the program start
-
+  for(int i=90;i<100;i++)
+  myfree(a[i]);
+  analyze();// 25% should be
 
 
   return 0;
@@ -100,17 +71,11 @@ BYTE* mymalloc(unsigned int size) {
   // make sure size is multiple of pagesize
   size = (size / PAGESIZE + 1) * PAGESIZE;
 
-  if(size % PAGESIZE != 0) {
-    printf("Size must be a multiple of PAGESIZE\n");
-    return 0;
-  }
-
-  
+  heapsize += size;
 
   // allocating first chunk
   if(top == NULL) {
-    top = sbrk(size + sizeof(chunkhead));
-    heapsize += size + sizeof(chunkhead);
+    top = sbrk(size);
     chunkhead* current = top;
     current -> size = size;
     current -> info = 1;
@@ -128,62 +93,39 @@ BYTE* mymalloc(unsigned int size) {
 
       if(current -> info == 0 && current -> size >= size) {
         if(best_candidate != NULL) {
-          if(best_candidate->size > current -> size) {
+          if(best_candidate->size < current -> size && best_candidate -> size > size) {
             best_candidate = current;
-            }
+          }
         } else {
           best_candidate = current;
         }
-
-        if(best_candidate == NULL) {
-          chunkhead* newChunk = sbrk(size + sizeof(chunkhead));
-          newChunk -> info = 1;
-          newChunk -> size = size;
-          newChunk -> prev = getLastChunk();
-          newChunk -> next = NULL;
-          return newChunk;
-        }
-
-        if(best_candidate -> size == size) {
-          best_candidate-> info = 1;
-          return (BYTE*)current + sizeof(chunkhead);
-        }
-
-        BYTE* newChunkAddress = split(best_candidate, size);
-        return newChunkAddress;
       }
-
     }
 
-    /*for(;current != NULL; current = (chunkhead*) current->next) {
-      if(current == 0) {
-        return 0;
+
+    if(best_candidate == NULL) {
+      chunkhead* newChunk = sbrk(size);
+      newChunk -> info = 1;
+      newChunk -> size = size;
+      newChunk -> prev = getLastChunk();
+      // save getLastChunk, set next to newChunk
+
+      if(getLastChunk()) {
+        getLastChunk() -> next = newChunk;
       }
+      newChunk -> next = NULL;
+      return (BYTE*)newChunk + sizeof(chunkhead);
+    }
 
-      if(current -> info == 0 && current -> size > size) {
-        BYTE* newChunkAddress = split(current, size);
-        return newChunkAddress;
-      } else if(current -> info == 0 && current -> size == size){
-          current-> info = 1;
-        return (BYTE*)current + sizeof(chunkhead);
-      }
-    }*/
-    chunkhead* new = sbrk(size);
-    heapsize += size;
+    if(best_candidate -> size == size) {
+      best_candidate-> info = 1;
+      return (BYTE*)current + sizeof(chunkhead);
+    }
 
-    new -> size = size;
-    new -> info = 1;
-    new -> prev = getLastChunk();
-    new -> next = NULL;
-    getLastChunk() -> next = new;
-
-    return new;
+    // couldn't find best fit case
+    BYTE* newChunkAddress = split(best_candidate, size);
+    return (BYTE*)newChunkAddress + sizeof(chunkhead);
   }
-
-  
-  
-
- 
   return 0;
 }
 
@@ -192,7 +134,7 @@ void myfree(BYTE* myaddress) {
   // implementation of free function
 
   chunkhead* ch;
-  ch = (chunkhead*)(myaddress);
+  ch = (chunkhead*)(myaddress - sizeof(chunkhead));
 
   if(ch -> info == 0 && ch -> next == NULL && ch -> prev == NULL) {
     ch = NULL;
@@ -328,51 +270,6 @@ BYTE* split(chunkhead* chunk, int size) {
 
 }
 
-void analyse() {
-
-  printf("-----PRINTING HEAP NOW ------------\n");
-  int i = 0;
-  chunkhead* ch = top;
-
-  while(ch != NULL) {
-    i++;
-    printf("Chunk #%d\n", i);
-    printf("Size = %d bytes\n", ch -> size);
-
-    if(ch -> info == 1) {
-      printf("Occupied\n");
-    } else {
-      printf("Free\n");
-    }
-    printf("Current = %p\n", ch);
-    printf("Next = %p\n", (ch -> next));
-    printf("Prev = %p\n", (ch -> prev));
-    printf("\n");
-
-    ch = ch -> next;
-  }
-
-  
-    /*for(;ch != NULL; ch = (chunkhead*) ch->next) {
-      i++;
-      printf("Chunk #%d\n", i);
-      printf("Size = %d bytes\n", ch -> size);
-
-      if(ch -> info == 1) {
-        printf("Occupied\n");
-      } else {
-        printf("Free\n");
-      }
-      printf("Current = %p\n", ch);
-      printf("Next = %p\n", (ch -> next));
-      printf("Prev = %p\n", (ch -> prev));
-      printf("\n");
-    }*/
-
-  printf("--------HEAP SIZE: %d --------\n", heapsize);
-  printf("Program break: %p\n", sbrk(0));
-}
-
 void analyze() {
 printf("\n--------------------------------------------------------------\n");
   if(!top) {
@@ -390,9 +287,6 @@ printf("\n--------------------------------------------------------------\n");
   }
   printf("program break on address: %x\n",sbrk(0));
 }
-
-
-
 
 chunkhead* getLastChunk() {
   if(!top) {
