@@ -143,14 +143,6 @@ void myfree(BYTE* myaddress) {
   ch = (chunkhead*)(myaddress - sizeof(chunkhead));
 
 
-  /*// case where we free very last chunk with all free space LAST CONDITION
-  if(ch -> info == 0 && ch -> next == NULL && ch -> prev == NULL) {
-    ch = NULL;
-    heapsize = 0;
-    top = NULL;
-    return;
-  }*/
-
 
   chunkhead* chunkheadNext = (chunkhead*)ch -> next;
   chunkhead* chunkheadPrev = (chunkhead*)ch -> prev;
@@ -186,7 +178,10 @@ void myfree(BYTE* myaddress) {
   heapsize -= (ch -> size + sizeof(chunkhead));
 
 
+  // case where we are freeing the second to last chunk, (DELETE TOP CHUNK)
   if(heapsize == 0 && ch -> info == 0 && ch -> next == NULL && ((chunkhead*)ch -> prev) -> info == 0) {
+    // set program break to where ch was
+    brk(top);
     top = NULL;
     return;
   }
@@ -201,7 +196,7 @@ void myfree(BYTE* myaddress) {
     if(isNextOccupied == 1 && isPrevFree == 1) {
       
       if(ch -> prev != NULL) {
-        ((chunkhead*)ch -> prev) -> size += ((chunkhead*)ch) -> size + sizeof(chunkhead);
+        ((chunkhead*)ch -> prev) -> size += ((chunkhead*)ch) -> size;
 
         chunkhead* potentialNext = ch -> next;
 
