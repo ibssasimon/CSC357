@@ -38,17 +38,22 @@ void analyze();
 int main() {
   BYTE* a[100];
   analyze();//50% points
-  for(int i=0;i<100;i++)
-  a[i]= mymalloc(1000);
-  for(int i=0;i<90;i++)
-  myfree(a[i]);
+  for(int i=0;i<100;i++) {
+    a[i]= mymalloc(1000);
+  }
+  for(int i=0;i<90;i++) {
+    myfree(a[i]);
+  }
   analyze(); //50% of points if this is correct
   myfree(a[95]);
+  analyze();
   a[95] = mymalloc(1000);
   analyze();//25% points, this new chunk should fill the smaller free one
   //(best fit)
-  for(int i=90;i<100;i++)
-  myfree(a[i]);
+  for(int i=90;i<100;i++) {
+    myfree(a[i]);
+    analyze();
+  }
   analyze();// 25% should be
 
 
@@ -80,7 +85,7 @@ BYTE* mymalloc(unsigned int size) {
     current -> size = size;
     current -> info = 1;
     current -> prev = NULL;
-    return current;
+    return (BYTE*)current + sizeof(chunkhead);
   } else {
     chunkhead* current = top;
 
@@ -93,7 +98,7 @@ BYTE* mymalloc(unsigned int size) {
 
       if(current -> info == 0 && current -> size >= size) {
         if(best_candidate != NULL) {
-          if(best_candidate->size < current -> size && best_candidate -> size > size) {
+          if(best_candidate->size > current -> size && best_candidate -> size > size) {
             best_candidate = current;
           }
         } else {
@@ -119,7 +124,7 @@ BYTE* mymalloc(unsigned int size) {
 
     if(best_candidate -> size == size) {
       best_candidate-> info = 1;
-      return (BYTE*)current + sizeof(chunkhead);
+      return (BYTE*)best_candidate + sizeof(chunkhead);
     }
 
     // couldn't find best fit case
@@ -136,10 +141,10 @@ void myfree(BYTE* myaddress) {
   chunkhead* ch;
   ch = (chunkhead*)(myaddress - sizeof(chunkhead));
 
-  if(ch -> info == 0 && ch -> next == NULL && ch -> prev == NULL) {
+  /*if(ch -> info == 0 && ch -> next == NULL && ch -> prev == NULL) {
     ch = NULL;
     return;
-  }
+  }*/
 
 
   chunkhead* chunkheadNext = (chunkhead*)ch -> next;
