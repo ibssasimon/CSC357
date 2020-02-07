@@ -285,12 +285,13 @@ BYTE* split(chunkhead* chunk, int size) {
 
 void analyze() {
 printf("\n--------------------------------------------------------------\n");
+  int no;
   if(!top) {
   printf("no heap, program break on address: %x\n", sbrk(0));
   return;
   }
   chunkhead* ch = (chunkhead*)top;
-  for (int no=0; ch; ch = (chunkhead*)ch->next,no++) {
+  for (no=0; ch; ch = (chunkhead*)ch->next,no++) {
   printf("%d | current addr: %x |", no, ch);
   printf("size: %d | ", ch->size);
   printf("info: %d | ", ch->info);
