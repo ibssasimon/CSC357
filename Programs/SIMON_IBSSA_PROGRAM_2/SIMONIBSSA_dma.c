@@ -36,11 +36,14 @@ void analyze();
 
 int main() {
   BYTE*a[100];
+  int i;
   analyze();//50% points
-  for(int i=0;i<100;i++)
-  a[i]= mymalloc(1000);
-  for(int i=0;i<90;i++)
-  myfree(a[i]);
+  for(i=0;i<100;i++) {
+    a[i]= mymalloc(1000);
+  }
+  for(i=0;i<90;i++) {
+    myfree(a[i]);
+  }
   analyze(); //50% of points if this is correct
   myfree(a[95]);
   a[95] = mymalloc(1000);
@@ -48,7 +51,7 @@ int main() {
   //(best fit)
 
   // WE HAVE 11 CHUNKS BUT ONLY DEALLOCATE 10! That last chunk contains all free space from previous merges
-  for(int i=90;i<100;i++) {
+  for(i=90;i<100;i++) {
     myfree(a[i]);
   }
   analyze();// 25% should be an empty heap now with the start address
