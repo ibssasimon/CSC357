@@ -8,7 +8,6 @@
 
 // pagesize definition
 #define PAGESIZE 4096
-#define _1MB 1048576 
 
 
 // global array declaration heapsize which is initialized to zero
@@ -36,25 +35,24 @@ void analyze();
 
 
 int main() {
-  BYTE* a[100];
+  BYTE*a[100];
   analyze();//50% points
-  for(int i=0;i<100;i++) {
-    a[i]= mymalloc(1000);
-  }
-  for(int i=0;i<90;i++) {
-    myfree(a[i]);
-  }
+  for(int i=0;i<100;i++)
+  a[i]= mymalloc(1000);
+  for(int i=0;i<90;i++)
+  myfree(a[i]);
   analyze(); //50% of points if this is correct
   myfree(a[95]);
-  analyze();
   a[95] = mymalloc(1000);
   analyze();//25% points, this new chunk should fill the smaller free one
   //(best fit)
+
+  // WE HAVE 11 CHUNKS BUT ONLY DEALLOCATE 10! That last chunk contains all free space from previous merges
   for(int i=90;i<100;i++) {
     myfree(a[i]);
-    analyze();
   }
-  analyze();// 25% should be
+  analyze();// 25% should be an empty heap now with the start address
+  //from the program start
 
 
   return 0;
@@ -70,13 +68,16 @@ BYTE* mymalloc(unsigned int size) {
   // best candidate pointer
   chunkhead* best_candidate = NULL;
 
+  
   // increment size by chunkhead
   size += sizeof(chunkhead);
 
   // make sure size is multiple of pagesize
   size = (size / PAGESIZE + 1) * PAGESIZE;
 
-  heapsize += size;
+  
+
+  heapsize += size + sizeof(chunkhead);
 
   // allocating first chunk
   if(top == NULL) {
@@ -141,8 +142,12 @@ void myfree(BYTE* myaddress) {
   chunkhead* ch;
   ch = (chunkhead*)(myaddress - sizeof(chunkhead));
 
-  /*if(ch -> info == 0 && ch -> next == NULL && ch -> prev == NULL) {
+
+  /*// case where we free very last chunk with all free space LAST CONDITION
+  if(ch -> info == 0 && ch -> next == NULL && ch -> prev == NULL) {
     ch = NULL;
+    heapsize = 0;
+    top = NULL;
     return;
   }*/
 
@@ -178,6 +183,14 @@ void myfree(BYTE* myaddress) {
 
 
   ch -> info = 0;
+  heapsize -= (ch -> size + sizeof(chunkhead));
+
+
+  if(heapsize == 0 && ch -> info == 0 && ch -> next == NULL && ((chunkhead*)ch -> prev) -> info == 0) {
+    top = NULL;
+    return;
+  }
+
   
     // ch next is occupied, ch prev is occupied (1)
     if(isNextFree == 0 && isPrevOccupied == 1) {
