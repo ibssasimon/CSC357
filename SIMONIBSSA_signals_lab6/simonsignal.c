@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <sys/mman.h>
+#include <dirent.h>
 #include <signal.h>
 
 
@@ -19,10 +20,14 @@ int main() {
   signal(SIGKILL, overwriteSignal);
 
 
+  struct dirent* dent;
+  DIR* dir;
+
   printf("Nearly indestructible child program! Muahahahaha!\n");
   printf("Main program ID: %d\n", getpid());
   int g;
   fflush(0);
+  char buffer[50];
 
 
 
@@ -30,8 +35,15 @@ int main() {
   while(1) {
 
     if(fork() == 0) {
+      signal(SIGINT, overwriteSignal);
+      signal(SIGTSTP, overwriteSignal);
+      signal(SIGTERM, overwriteSignal);
+      signal(SIGKILL, overwriteSignal);
       fflush(0);
       // child process
+
+      strcpy(buffer, ".");
+
       printf("child ID: %d\n", getpid());
       while(1) {
         time_t t = time(NULL);
