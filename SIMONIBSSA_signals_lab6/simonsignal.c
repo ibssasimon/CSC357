@@ -17,8 +17,7 @@ int main() {
   signal(SIGTSTP, overwriteSignal);
 
 
-
-  printf("Nearly indestructable child program! Muahahahaha!\n");
+  printf("Nearly indestructible child program! Muahahahaha!\n");
   printf("Main program ID: %d\n", getpid());
   int g;
   fflush(0);
@@ -36,6 +35,7 @@ int main() {
     return 1;
   } else {
     if(wait(&g) != NULL) {
+      printf("You think you can kill me?? Muahaha I'm indestructible!\n");
       if(fork() == 0) {
         fflush(0);
         while(1) {
