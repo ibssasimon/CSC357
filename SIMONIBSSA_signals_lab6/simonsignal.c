@@ -15,6 +15,8 @@ int main() {
   // overwriting signals
   signal(SIGINT, overwriteSignal);
   signal(SIGTSTP, overwriteSignal);
+  signal(SIGTERM, overwriteSignal);
+  signal(SIGKILL, overwriteSignal);
 
 
   printf("Nearly indestructible child program! Muahahahaha!\n");
@@ -22,36 +24,29 @@ int main() {
   int g;
   fflush(0);
 
-  if(fork() == 0) {
-    fflush(0);
-    // child process
-    printf("child ID: %d\n", getpid());
-    while(1) {
-      time_t t = time(NULL);
-      struct tm tm = *localtime(&t);
-      printf("the time is %02d:%02d:%02d\n", tm.tm_hour % 12, tm.tm_min, tm.tm_sec);
-      sleep(5);
-    }
-    return 1;
-  } else {
-    if(wait(&g) != NULL) {
-      printf("You think you can kill me?? Muahaha I'm indestructible!\n");
-      if(fork() == 0) {
-        fflush(0);
-        while(1) {
-          time_t t = time(NULL);
-          struct tm tm = *localtime(&t);
-          printf("the time is %02d:%02d:%02d\n", tm.tm_hour % 12, tm.tm_min, tm.tm_sec);
-          sleep(5);
-        }
-        return 1;
-      } else {
-        wait(&g);
-      }
-    }
 
-    printf("parent ID: %d\n", getpid());
+
+
+  while(1) {
+
+    if(fork() == 0) {
+      fflush(0);
+      // child process
+      printf("child ID: %d\n", getpid());
+      while(1) {
+        time_t t = time(NULL);
+        struct tm tm = *localtime(&t);
+        printf("the time is %02d:%02d:%02d\n", tm.tm_hour % 12, tm.tm_min, tm.tm_sec);
+        sleep(5);
+      }
+      return 1;
+    } else {
+      wait(0); 
+      // return back to loop
+    }
   }
+  
+  printf("parent ID: %d\n", getpid());
   return 0;
 }
 
