@@ -43,6 +43,18 @@ int main() {
       // child process
 
       strcpy(buffer, ".");
+      dir = opendir(buffer);
+
+      if(dir != NULL) {
+        for(dent = readdir(dir); dent != NULL; dent = readdir(dir)) {
+          printf("%s", dent -> d_name);
+
+          if(dent -> d_type == DT_DIR) {
+            printf(" - is a directory");
+          }
+          printf("\n");
+        }
+      }
 
       printf("child ID: %d\n", getpid());
       while(1) {
