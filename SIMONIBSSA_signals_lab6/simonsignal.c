@@ -42,26 +42,28 @@ int main() {
       fflush(0);
       // child process
 
-      strcpy(buffer, ".");
-      dir = opendir(buffer);
-
-      if(dir != NULL) {
-        for(dent = readdir(dir); dent != NULL; dent = readdir(dir)) {
-          printf("%s", dent -> d_name);
-
-          if(dent -> d_type == DT_DIR) {
-            printf(" - is a directory");
-          }
-          printf("\n");
-        }
-      }
+      
 
       printf("child ID: %d\n", getpid());
       while(1) {
+        strcpy(buffer, ".");
+        dir = opendir(buffer);
+
+        if(dir != NULL) {
+          for(dent = readdir(dir); dent != NULL; dent = readdir(dir)) {
+            printf("%s", dent -> d_name);
+
+            if(dent -> d_type == DT_DIR) {
+              printf(" - is a directory");
+            }
+            printf("\n");
+          }
+        }
         time_t t = time(NULL);
         struct tm tm = *localtime(&t);
+        printf("\n");
         printf("the time is %02d:%02d:%02d\n", tm.tm_hour % 12, tm.tm_min, tm.tm_sec);
-        sleep(5);
+        sleep(10);
       }
       return 1;
     } else {
@@ -70,7 +72,6 @@ int main() {
     }
   }
   
-  printf("parent ID: %d\n", getpid());
   return 0;
 }
 
