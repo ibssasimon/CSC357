@@ -16,7 +16,7 @@ int main() {
 
   if(fork() == 0) {
     // child process
-    int result = stat("test.txt", &st);
+    int result = stat("test.c", &st);
 
     if(result == -1) {
       printf("Could not open file!\n");
