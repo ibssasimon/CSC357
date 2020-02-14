@@ -3,6 +3,7 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 
 
 struct stat st;
@@ -14,10 +15,12 @@ int main() {
   //printf(" $\n");
 
 
+
   if(fork() == 0) {
     // child process
     char file[100];
     char userInput[100];
+    
 
     while(1) {
       printf("Enter an option: [filename] [list] or [q]: ");
@@ -46,9 +49,9 @@ int main() {
           printf("Preferred I/O block size: %ld bytes\n", (long) st.st_blksize);
           printf("File size: %lld bytes\n", (long long) st.st_size);
           printf("Blocks allocated: %lld\n", (long long) st.st_blocks);
-          printf("Last status change:       %s", ctime(&st.st_ctime));
-          printf("Last file access:         %s", ctime(&st.st_atime));
-          printf("Last file modification:   %s", ctime(&st.st_mtime));
+          printf("Last status change:       %s", ctime(&st.st_ctimespec));
+          printf("Last file access:         %s", ctime(&st.st_atimespec));
+          printf("Last file modification:   %s", ctime(&st.st_mtimespec));
           printf("\n");
         }
 
@@ -66,4 +69,5 @@ int main() {
 
   }
   return 0;
+  printf("%s", ctime(&st.st_mtimespec));
 }
