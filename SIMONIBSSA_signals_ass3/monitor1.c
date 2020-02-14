@@ -38,8 +38,18 @@ int main() {
         if(result == -1) {
           printf("Could not open file! Try again\n");
         } else {
-          printf("file mode: %d\n", st.st_mode);
-          printf("file size: %lld\n", st.st_size);
+          // printing file information
+          printf("I-node number: %ld\n", (long)st.st_ino);
+          printf("Mode: %lo (octal)\n",(unsigned long)st.st_mode);
+          printf("Link count: %ld\n", (long) st.st_nlink);
+          printf("Ownership: UID=%ld GID=%ld\n", (long) st.st_uid, (long) st.st_gid);
+          printf("Preferred I/O block size: %ld bytes\n", (long) st.st_blksize);
+          printf("File size: %lld bytes\n", (long long) st.st_size);
+          printf("Blocks allocated: %lld\n", (long long) st.st_blocks);
+          printf("Last status change:       %s", ctime(&st.st_ctime));
+          printf("Last file access:         %s", ctime(&st.st_atime));
+          printf("Last file modification:   %s", ctime(&st.st_mtime));
+          printf("\n");
         }
 
       }
