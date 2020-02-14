@@ -1,0 +1,3 @@
+Hi my name is Simon
+I'm testing this program
+this is a test to see if I can scan in a file
