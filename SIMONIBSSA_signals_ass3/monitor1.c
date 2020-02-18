@@ -13,10 +13,10 @@ DIR* dir;
 
 int main() {
   int g;
-  //printf("\033[0;34m"); // set output color to blue
-  //printf("stat prog");
-  //printf("\033[0m"); //Resets the text to default color
-  //printf(" $\n");
+  printf("\033[0;34m"); // set output color to blue
+  printf("stat prog");
+  printf("\033[0m"); //Resets the text to default color
+  printf(" $\n");
 
   int* time = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   *time = 0;
@@ -74,19 +74,14 @@ int main() {
 
       }
 
-
-
     }
-
-    clock_t end = clock();
-    int childTime = ((double)(end - start)) / CLOCKS_PER_SEC;
-    *time = childTime;
     return 1;
   } else {
     // parent process
     fflush(0);
     if(*time > 10) {
       printf("loser! Hurry up ya dammy!\n");
+
     }
     wait(&g);
     printf("child has finished!\n");
