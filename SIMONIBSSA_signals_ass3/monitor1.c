@@ -5,12 +5,19 @@
 #include <sys/types.h>
 #include <time.h>
 #include <dirent.h>
+#include <signal.h>
 
 
 struct stat st;
 struct dirent* dent;
 DIR* dir;
 
+int* childPid;
+void handleAlarm(int sig) {
+  printf("took longer than 10 seconds!\n");
+  kill(*childPid, SIGKILL);
+  wait(0);
+}
 int main() {
   int g;
   printf("\033[0;34m"); // set output color to blue
@@ -18,8 +25,7 @@ int main() {
   printf("\033[0m"); //Resets the text to default color
   printf(" $\n");
 
-  int* time = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-  *time = 0;
+  childPid = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   if(fork() == 0) {
     // child process
     
@@ -28,9 +34,10 @@ int main() {
     char buffer[50];
     fflush(0);
 
-    
-    clock_t start = clock();
+    *childPid = getpid();
     while(1) {
+      alarm(10);
+      signal(SIGALRM, handleAlarm);
       printf("Enter an option: [filename] [list] or [q]: ");
       scanf("%s", userInput);
 
@@ -73,16 +80,11 @@ int main() {
         }
 
       }
-
     }
     return 1;
   } else {
     // parent process
     fflush(0);
-    if(*time > 10) {
-      printf("loser! Hurry up ya dammy!\n");
-
-    }
     wait(&g);
     printf("child has finished!\n");
 
@@ -90,3 +92,4 @@ int main() {
 
   return 0;
 }
+
