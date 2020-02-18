@@ -26,6 +26,9 @@ int main() {
   printf(" $\n");
 
   childPid = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  int* active = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  *active = 0;
+
   if(fork() == 0) {
     // child process
     
@@ -36,10 +39,10 @@ int main() {
 
     *childPid = getpid();
     while(1) {
-      alarm(10);
-      signal(SIGALRM, handleAlarm);
+      *active = 0;
       printf("Enter an option: [filename] [list] or [q]: ");
       scanf("%s", userInput);
+
 
       // listing content of current directory
       if(strcmp(userInput, "list") == 0) {
@@ -85,8 +88,19 @@ int main() {
   } else {
     // parent process
     fflush(0);
-    wait(&g);
-    printf("child has finished!\n");
+    while(1) {
+      sleep(1);
+      *active = *active + 1;
+
+      if(*active >= 10) {
+        printf("my program is longer than 10 seconds\n");
+        kill(*childPid, SIGKILL);
+        wait(0);
+        return 0;
+      }
+      // check to see if child active
+
+    }
 
   }
 
