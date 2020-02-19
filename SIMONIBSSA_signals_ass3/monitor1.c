@@ -55,9 +55,19 @@ int main() {
       scanf("%s", userInput);
 
 
+
+      if(strcmp(userInput, "..") == 0) {
+        strcpy(buffer, "..");
+        printf("moved up a directory\n");
+        continue;
+      }
       // listing content of current directory
       if(strcmp(userInput, "list") == 0) {
-        strcpy(buffer, ".");
+        if(strcmp(buffer, "..") == 0) {
+          strcpy(buffer, "..");
+        } else {
+          strcpy(buffer, ".");
+        }
         dir = opendir(buffer);
 
         if(dir != NULL) {
