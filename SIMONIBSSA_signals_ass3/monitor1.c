@@ -43,6 +43,7 @@ int main() {
     char file[100];
     char userInput[100];
     char buffer[50];
+    char tempBuffer[50];
     fflush(0);
 
     *childPid = getpid();
@@ -61,11 +62,36 @@ int main() {
         printf("moved up a directory\n");
         continue;
       }
+
+      if(strncmp("/", userInput, 1) == 0) {
+        
+        char* token;
+        strcat(tempBuffer, ".");
+        strcat(tempBuffer, "/");
+
+        token = strtok(userInput, "/");
+        while(token != NULL) {
+          strcat(tempBuffer, token);
+          token = strtok(NULL, userInput);
+        }
+        printf("%s\n", tempBuffer);
+        dir = opendir(tempBuffer);
+
+        if(dir != NULL) {
+          printf("opening: %s\n", tempBuffer);
+        } else {
+          printf("subdirectory not found!\n");
+        }
+
+        continue;
+        // OPEN SUB DIRECTORY HERE
+      }
       // listing content of current directory
       if(strcmp(userInput, "list") == 0) {
         if(strcmp(buffer, "..") == 0) {
           strcpy(buffer, "..");
         } else {
+          // opening current dir
           strcpy(buffer, ".");
         }
         dir = opendir(buffer);
