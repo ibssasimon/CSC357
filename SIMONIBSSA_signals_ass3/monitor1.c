@@ -113,7 +113,7 @@ int main() {
       *active = *active + 1;
 
       if(*active >= 10) {
-        printf("my program is longer than 10 seconds\n");
+        printf("10 seconds passed, inactive. KILL PROGRAM\n");
         kill(*childPid, SIGKILL);
         wait(0);
         return 0;
