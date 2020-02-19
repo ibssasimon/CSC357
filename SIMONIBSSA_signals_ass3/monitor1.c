@@ -25,9 +25,9 @@ void overwriteSignal(int sig) {
 int main() {
 
   // overwrite signals
-  //signal(SIGINT, overwriteSignal);
-  //signal(SIGTSTP, overwriteSignal);
-  //signal(SIGTERM, overwriteSignal);
+  signal(SIGINT, overwriteSignal);
+  signal(SIGTSTP, overwriteSignal);
+  signal(SIGTERM, overwriteSignal);
 
   int g;
 
@@ -84,6 +84,14 @@ int main() {
         *q = 1;
         return 0;
       } else {
+
+        /*if(strcmp(userInput[0], "/") == 0) {
+          printf("YOU WANNA GO IN A DIR?");
+          int result = stat(userInput, &st);
+          if(st.st_mode == S_IFDIR) {
+            printf("opening directory!!\n");
+          }
+        }*/
         // assume it's a file name
         int result = stat(userInput, &st);
 
@@ -91,6 +99,7 @@ int main() {
           printf("Could not open file! Try again\n");
         } else {
           // printing file information
+          
           printf("I-node number: %ld\n", (long)st.st_ino);
           printf("Mode: %lo (octal)\n",(unsigned long)st.st_mode);
           printf("Link count: %ld\n", (long) st.st_nlink);
