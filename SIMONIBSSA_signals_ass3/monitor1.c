@@ -18,7 +18,17 @@ void handleAlarm(int sig) {
   kill(*childPid, SIGKILL);
   wait(0);
 }
+
+void overwriteSignal(int sig) {
+  printf("NOPE\n");
+}
 int main() {
+
+  // overwrite signals
+  signal(SIGINT, overwriteSignal);
+  signal(SIGTSTP, overwriteSignal);
+  signal(SIGTERM, overwriteSignal);
+
   int g;
   printf("\033[0;34m"); // set output color to blue
   printf("stat prog");
@@ -60,7 +70,7 @@ int main() {
           }
         }
       } else if(strcmp(userInput, "q") == 0) {
-        return 1;
+        return 0;
       } else {
         // assume it's a file name
         int result = stat(userInput, &st);

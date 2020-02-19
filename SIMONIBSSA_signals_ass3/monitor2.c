@@ -19,6 +19,7 @@ void handleAlarm(int sig) {
   wait(0);
 }
 int main() {
+
   int g;
   printf("\033[0;34m"); // set output color to blue
   printf("stat prog");
@@ -90,7 +91,7 @@ int main() {
   } else {
     // parent process
     fflush(0);
-    wait(&g);
+    wait(0);
     while(1) {
       sleep(1);
       *active = *active + 1;
@@ -101,7 +102,6 @@ int main() {
         break;
       }
     }
-    wait(0);
   }
   }
 
