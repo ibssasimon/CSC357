@@ -21,10 +21,6 @@ void handleAlarm(int sig) {
 int main() {
 
   int g;
-  printf("\033[0;34m"); // set output color to blue
-  printf("stat prog");
-  printf("\033[0m"); //Resets the text to default color
-  printf(" $\n");
 
   childPid = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   int* active = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
@@ -44,7 +40,10 @@ int main() {
     *childPid = getpid();
     while(1) {
       *active = 0;
-      printf("Enter an option: [filename] [list] or [q]: ");
+      printf("\033[0;34m"); // set output color to blue
+      printf("Simon Ibssa program 3!");
+      printf("\033[0m"); //Resets the text to default color
+      printf("$ ");
       scanf("%s", userInput);
 
 

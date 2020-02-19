@@ -25,19 +25,17 @@ void overwriteSignal(int sig) {
 int main() {
 
   // overwrite signals
-  signal(SIGINT, overwriteSignal);
-  signal(SIGTSTP, overwriteSignal);
-  signal(SIGTERM, overwriteSignal);
+  //signal(SIGINT, overwriteSignal);
+  //signal(SIGTSTP, overwriteSignal);
+  //signal(SIGTERM, overwriteSignal);
 
   int g;
-  printf("\033[0;34m"); // set output color to blue
-  printf("stat prog");
-  printf("\033[0m"); //Resets the text to default color
-  printf(" $\n");
 
   childPid = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   int* active = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   *active = 0;
+  int* q = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  *q = 0;
 
   if(fork() == 0) {
     // child process
@@ -50,7 +48,10 @@ int main() {
     *childPid = getpid();
     while(1) {
       *active = 0;
-      printf("Enter an option: [filename] [list] or [q]: ");
+      printf("\033[0;34m"); // set output color to blue
+      printf("Simon Ibssa program 3!");
+      printf("\033[0m"); //Resets the text to default color
+      printf("$ ");
       scanf("%s", userInput);
 
 
@@ -70,6 +71,7 @@ int main() {
           }
         }
       } else if(strcmp(userInput, "q") == 0) {
+        *q = 1;
         return 0;
       } else {
         // assume it's a file name
@@ -98,7 +100,15 @@ int main() {
   } else {
     // parent process
     fflush(0);
+    
     while(1) {
+
+      // check if user pressed q
+      if(*q == 1) {
+        kill(*childPid, SIGKILL);
+        wait(0);
+        return 0;
+      }
       sleep(1);
       *active = *active + 1;
 
@@ -108,7 +118,6 @@ int main() {
         wait(0);
         return 0;
       }
-      // check to see if child active
 
     }
 
