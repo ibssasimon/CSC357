@@ -29,7 +29,10 @@ int main() {
   int* active = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   *active = 0;
 
-  if(fork() == 0) {
+  while(1) {
+    // continuously fork child
+    
+    if(fork() == 0) {
     // child process
     
     char file[100];
@@ -81,28 +84,28 @@ int main() {
           printf("Last file modification:   %s", ctime(&st.st_mtimespec));
           printf("\n");
         }
-
       }
     }
     return 1;
   } else {
     // parent process
     fflush(0);
+    wait(&g);
     while(1) {
       sleep(1);
       *active = *active + 1;
-
+      printf("Waiting...\n");
       if(*active >= 10) {
-        printf("my program is longer than 10 seconds\n");
-        kill(*childPid, SIGKILL);
-        wait(0);
-        return 0;
+        printf("waited 10 seconds, fork again\n");
+        *active = 0;
+        break;
       }
-      // check to see if child active
-
     }
-
+    wait(0);
   }
+  }
+
+  
 
   return 0;
 }
