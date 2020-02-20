@@ -18,7 +18,6 @@ int main() {
   *flag = 0;
 
   // fork into child and parent processes
-
   if(fork() == 0) {
     // child case
     pr[0] = 1;
