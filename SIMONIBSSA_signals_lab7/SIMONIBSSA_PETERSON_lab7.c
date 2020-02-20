@@ -20,11 +20,18 @@ int main() {
   // fork into child and parent processes
   if(fork() == 0) {
     // child case
+    char sentence1[] = "Aye! Aye! Aye! Grrrraaah!! Ge ge ge grraaah!! Panda, Panda Panda, Panda, Panda, Panda, Panda.";
+    char sentence2[] = "I got dogs in Atlanta, twisting rope, clean, and the Fanta (soda).";
     pr[0] = 1;
     *flag = 1;
     // critical section
     while(pr[1] == 1 && *flag == 1);
-    strcpy(sentences, "Aye! Aye! Aye! Grrrraaah!! Ge ge ge grraaah!! Panda, Panda Panda, Panda, Panda, Panda, Panda. I got dogs in Atlanta, twisting rope, clean, and the Fanta (soda).\n");
+
+    // infinite while loop
+    while(1) {
+      // check if i % 2 == 0 , if yes copy sent1 into sentences, else copy sent2 into sentesnces.
+    }
+    
     pr[0] = 0;
 
   } else {
