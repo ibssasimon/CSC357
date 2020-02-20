@@ -6,6 +6,7 @@
 #include <time.h>
 #include <dirent.h>
 #include <signal.h>
+#include <limits.h>
 
 
 struct stat st;
@@ -44,18 +45,30 @@ int main() {
     char userInput[100];
     char buffer[50];
     char tempBuffer[50];
+    char directory[PATH_MAX];
+
     fflush(0);
 
     *childPid = getpid();
     while(1) {
       *active = 0;
       printf("\033[0;34m"); // set output color to blue
-      printf("Simon Ibssa program 3!");
+      printf("Simon Ibssa A3:");
+      // print current directory
+
+      /* TODO(sibssa): print working directory when moving one level up or into subdirectory*/
+
+      if(getcwd(directory, sizeof(directory)) != NULL) {
+        printf("%s", directory);
+      }
+
       printf("\033[0m"); //Resets the text to default color
       printf("$ ");
       scanf("%s", userInput);
 
 
+
+      
 
       if(strcmp(userInput, "..") == 0) {
         strcpy(buffer, "..");
@@ -75,16 +88,17 @@ int main() {
           token = strtok(NULL, userInput);
         }
         printf("%s\n", tempBuffer);
+        // OPEN SUB DIRECTORY HERE
         dir = opendir(tempBuffer);
 
+        /* TODO(sibssa): move into subdirectory*/
         if(dir != NULL) {
           printf("opening: %s\n", tempBuffer);
         } else {
-          printf("subdirectory not found!\n");
+          printf("Folder does not exist!\n");
         }
 
         continue;
-        // OPEN SUB DIRECTORY HERE
       }
       // listing content of current directory
       if(strcmp(userInput, "list") == 0) {
