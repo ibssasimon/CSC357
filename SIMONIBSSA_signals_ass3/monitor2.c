@@ -6,6 +6,7 @@
 #include <time.h>
 #include <dirent.h>
 #include <signal.h>
+#include <limits.h>
 
 
 struct stat st;
@@ -35,18 +36,69 @@ int main() {
     char file[100];
     char userInput[100];
     char buffer[50];
+    char tempBuffer[50];
+    char directory[PATH_MAX];
     fflush(0);
 
     *childPid = getpid();
     while(1) {
       *active = 0;
       printf("\033[0;34m"); // set output color to blue
-      printf("Simon Ibssa program 3!");
+      printf("Simon Ibssa A3:");
+      // print current directory
+
+      if(getcwd(directory, sizeof(directory)) != NULL) {
+        printf("%s", directory);
+      }
+
       printf("\033[0m"); //Resets the text to default color
       printf("$ ");
       scanf("%s", userInput);
 
 
+
+
+      if(strcmp(userInput, "..") == 0) {
+        strcpy(buffer, "..");
+        // update directory
+        for(int i = strlen(directory); i > 0; i--) {
+          // remove first /
+          if(directory[i] == '/') {
+            directory[i] = '\0';
+            break;
+          }
+        }
+        chdir(directory);
+        printf("moved up a directory!\n");
+        continue;
+      }
+
+
+
+      if(strncmp("/", userInput, 1) == 0) {
+        
+        char* token;
+        strcat(tempBuffer, "/");
+
+        token = strtok(userInput, "/");
+        while(token != NULL) {
+          strcat(tempBuffer, token);
+          token = strtok(NULL, userInput);
+        }
+        strcat(directory, tempBuffer);
+
+        // OPEN SUB DIRECTORY HERE
+        dir = opendir(directory);
+        /* TODO(sibssa): move into subdirectory*/
+        if(dir != NULL) {
+          printf("opening: %s\n", tempBuffer);
+        } else {
+          printf("Folder does not exist!\n");
+        }
+        chdir(directory);
+        continue;
+      }
+      
       // listing content of current directory
       if(strcmp(userInput, "list") == 0) {
         strcpy(buffer, ".");

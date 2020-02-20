@@ -56,8 +56,6 @@ int main() {
       printf("Simon Ibssa A3:");
       // print current directory
 
-      /* TODO(sibssa): print working directory when moving one level up or into subdirectory*/
-
       if(getcwd(directory, sizeof(directory)) != NULL) {
         printf("%s", directory);
       }
@@ -81,12 +79,13 @@ int main() {
           }
         }
         chdir(directory);
+        printf("%s\n", directory);
         printf("moved up a directory!\n");
         continue;
       }
 
       if(strncmp("/", userInput, 1) == 0) {
-        
+        *tempBuffer = '\0';
         char* token;
         strcat(tempBuffer, "/");
 
@@ -95,7 +94,6 @@ int main() {
           strcat(tempBuffer, token);
           token = strtok(NULL, userInput);
         }
-        printf("%s\n", tempBuffer);
         strcat(directory, tempBuffer);
 
         // OPEN SUB DIRECTORY HERE
@@ -107,6 +105,7 @@ int main() {
           printf("Folder does not exist!\n");
         }
         chdir(directory);
+        printf("%s\n", directory);
         continue;
       }
       // listing content of current directory
@@ -133,14 +132,6 @@ int main() {
         *q = 1;
         return 0;
       } else {
-
-        /*if(strcmp(userInput[0], "/") == 0) {
-          printf("YOU WANNA GO IN A DIR?");
-          int result = stat(userInput, &st);
-          if(st.st_mode == S_IFDIR) {
-            printf("opening directory!!\n");
-          }
-        }*/
         // assume it's a file name
         int result = stat(userInput, &st);
 
