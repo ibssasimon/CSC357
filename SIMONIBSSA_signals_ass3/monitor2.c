@@ -8,6 +8,7 @@
 #include <signal.h>
 #include <limits.h>
 
+/*Simon Ibssa, CSC 357 - assignment 3. Implemented with extra credit*/
 
 struct stat st;
 struct dirent* dent;
@@ -76,7 +77,7 @@ int main() {
 
 
       if(strncmp("/", userInput, 1) == 0) {
-        
+        *tempBuffer = '\0';
         char* token;
         strcat(tempBuffer, "/");
 
@@ -98,7 +99,7 @@ int main() {
         chdir(directory);
         continue;
       }
-      
+
       // listing content of current directory
       if(strcmp(userInput, "list") == 0) {
         strcpy(buffer, ".");

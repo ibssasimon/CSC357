@@ -8,6 +8,7 @@
 #include <signal.h>
 #include <limits.h>
 
+/*Simon Ibssa, CSC 357 - assignment 3. Implemented with extra credit*/
 
 struct stat st;
 struct dirent* dent;
@@ -79,7 +80,6 @@ int main() {
           }
         }
         chdir(directory);
-        printf("%s\n", directory);
         printf("moved up a directory!\n");
         continue;
       }
@@ -105,7 +105,6 @@ int main() {
           printf("Folder does not exist!\n");
         }
         chdir(directory);
-        printf("%s\n", directory);
         continue;
       }
       // listing content of current directory
