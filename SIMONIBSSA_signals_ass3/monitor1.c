@@ -72,6 +72,16 @@ int main() {
 
       if(strcmp(userInput, "..") == 0) {
         strcpy(buffer, "..");
+        // update directory
+        for(int i = strlen(directory); i > 0; i--) {
+          // remove first /
+          if(directory[i] == '/') {
+            directory[i] = '\0';
+            break;
+          }
+        }
+        chdir(directory);
+        printf("%s\n", directory);
         printf("moved up a directory\n");
         continue;
       }
@@ -90,7 +100,6 @@ int main() {
         printf("%s\n", tempBuffer);
         // OPEN SUB DIRECTORY HERE
         dir = opendir(tempBuffer);
-
         /* TODO(sibssa): move into subdirectory*/
         if(dir != NULL) {
           printf("opening: %s\n", tempBuffer);
