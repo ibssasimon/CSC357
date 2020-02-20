@@ -81,15 +81,13 @@ int main() {
           }
         }
         chdir(directory);
-        printf("%s\n", directory);
-        printf("moved up a directory\n");
+        printf("moved up a directory!\n");
         continue;
       }
 
       if(strncmp("/", userInput, 1) == 0) {
         
         char* token;
-        strcat(tempBuffer, ".");
         strcat(tempBuffer, "/");
 
         token = strtok(userInput, "/");
@@ -98,15 +96,17 @@ int main() {
           token = strtok(NULL, userInput);
         }
         printf("%s\n", tempBuffer);
+        strcat(directory, tempBuffer);
+
         // OPEN SUB DIRECTORY HERE
-        dir = opendir(tempBuffer);
+        dir = opendir(directory);
         /* TODO(sibssa): move into subdirectory*/
         if(dir != NULL) {
           printf("opening: %s\n", tempBuffer);
         } else {
           printf("Folder does not exist!\n");
         }
-
+        chdir(directory);
         continue;
       }
       // listing content of current directory
@@ -117,7 +117,7 @@ int main() {
           // opening current dir
           strcpy(buffer, ".");
         }
-        dir = opendir(buffer);
+        dir = opendir(directory);
 
         if(dir != NULL) {
           for(dent = readdir(dir); dent != NULL; dent = readdir(dir)) {
