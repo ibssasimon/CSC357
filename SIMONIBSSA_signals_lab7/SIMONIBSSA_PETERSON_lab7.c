@@ -19,7 +19,7 @@ int main() {
   *flag = 0;
 
   char sentence1[] = {"Aye! Aye! Aye! Grrrraaah!! Ge ge ge grraaah!! Panda, Panda Panda, Panda, Panda, Panda, Panda."};
-  char sentence2[] = {"I got dogs in Atlanta, twisting rope, clean, and the Fanta (soda). Brah brah brah"};
+  char sentence2[] = {"I got dogs in Atlanta, twisting rope, clean, and the Fanta (soda). Black X6 , Phantom White X6, Panda"};
   char outString[1000];
   int i;
   // fork into child and parent processes
