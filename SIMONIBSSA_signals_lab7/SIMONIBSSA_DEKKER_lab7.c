@@ -60,7 +60,7 @@ int main() {
     while(1) {
       wantToEnter[1] = true;
       while(wantToEnter[0]) {
-        if(turn != 1) {
+        if(*turn != 1) {
           wantToEnter[1] = false;
           while(*turn != 1);
           // busy wait
