@@ -1,6 +1,7 @@
 #include <stdio.h>
+#include <stdalign.h>
 
-#define BYTE unsigned char
+typedef unsigned char BYTE;
 
 // pipe struct
 
@@ -21,12 +22,30 @@ int mywrite(mypipe *pipe,BYTE* buffer, int size);
 
 //reads "size" bytes from pipe into buffer, returns how much it read (max size), 0 if pipe is empty
 int myread(mypipe* pipe, BYTE* buffer, int size);
-int main() {
 
+
+
+int main() {
+  char text[100];
+  mypipe pipeA;
+  init_pipe(&pipeA, 32);
+  printf("initialized pipe\n");
+  return 0;
 }
 
-void init_pipe(mypipe* pipe, int size) {
 
+
+
+
+
+void init_pipe(mypipe* pipe, int size) {
+  // malloc size for pipe. I think?
+  mypipe* p = (mypipe*)malloc(size);
+  pipe -> buffersize = p;
+
+  // set start and end
+  pipe -> start_occupied = 0;
+  pipe -> end_occupied = 0;
 }
 
 int mywrite(mypipe* pipe, BYTE* buffer, int size) {
