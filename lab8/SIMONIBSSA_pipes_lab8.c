@@ -63,5 +63,13 @@ int mywrite(mypipe* pipe, BYTE* buffer, int size) {
 }
 
 int myread(mypipe* pipe, BYTE* buffer, int size) {
-  
+  pipe -> start_occupied = 0;
+  pipe -> end_occupied = 1;
+  if(size > pipe -> buffersize) {
+    fread(&buffer, 1, pipe -> buffersize, pipe -> pipebuffer);
+    return pipe -> buffersize;
+  } else {
+    fread(&buffer, 1, sizeof(BYTE*), pipe->pipebuffer);
+  }
+  return size;
 }
