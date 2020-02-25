@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <stdalign.h>
+#include <string.h>
 
 typedef unsigned char BYTE;
 
 // pipe struct
+
 
 typedef struct mypipe {
   BYTE* pipebuffer;
@@ -30,6 +32,9 @@ int main() {
   mypipe pipeA;
   init_pipe(&pipeA, 32);
   printf("initialized pipe\n");
+  mywrite(&pipeA, "hello world", 12);
+  printf("%s\n", pipeA.pipebuffer);
+
   return 0;
 }
 
@@ -40,15 +45,20 @@ int main() {
 
 void init_pipe(mypipe* pipe, int size) {
   // malloc size for pipe. I think?
-  mypipe* p = (mypipe*)malloc(size);
-  pipe -> buffersize = p;
+  pipe -> pipebuffer = (mypipe*)malloc(size);
+  pipe -> buffersize = size;
 
   // set start and end
   pipe -> start_occupied = 0;
   pipe -> end_occupied = 0;
+
 }
 
 int mywrite(mypipe* pipe, BYTE* buffer, int size) {
+  pipe -> start_occupied = 1;
+  strncat(pipe -> pipebuffer, buffer, size);
+  pipe -> end_occupied = 0;
+  return size;
 
 }
 
