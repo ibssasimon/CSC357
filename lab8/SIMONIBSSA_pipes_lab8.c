@@ -30,14 +30,15 @@ int myread(mypipe* pipe, BYTE* buffer, int size);
 int main() {
   char text[100];
   mypipe pipeA;
-  printf("i hope this works\n");
+
   init_pipe(&pipeA, 32);
-  printf("initialized pipe\n");
   mywrite(&pipeA, "hello world", 12);
-  printf("%s\n", pipeA.pipebuffer);
   mywrite(&pipeA, "it's a nice day", 16);
-  printf("%s\n", pipeA.pipebuffer);
+
   myread(&pipeA, text, 12);
+  printf("%s\n", text);
+  // do we read only 16 bytes including hello world, or 16 bytes after hello world?
+  myread(&pipeA, text, 16);
   printf("%s\n", text);
   //myread(&pipeA, text, 16);
   //printf("%s\n", text);
