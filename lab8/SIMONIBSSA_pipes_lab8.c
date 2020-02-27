@@ -45,7 +45,7 @@ int main() {
 
   // only reading 29 bytes? How to test carryover(2)
   mywrite(&pipeA, "and now we test the carryover", 30);
-  myread(&pipeA, text, 30);
+  myread(&pipeA, text, 16);
   printf("reading 30 bytes: %s\n", text);
   // expected output? (3)
   return 0;
@@ -75,8 +75,16 @@ int mywrite(mypipe* pipe, BYTE* buffer, int size) {
 
   // carryover case 
   if(size > ( pipe -> buffersize - pipe -> start_occupied)) {
-    pipe -> start_occupied = 0;
-    pipe -> end_occupied = 0;
+    printf("Carryover write\n");
+    pipe ->start_occupied = pipe -> end_occupied;
+    int remaining = pipe -> buffersize - (pipe -> end_occupied);
+    pipe -> end_occupied = ((pipe ->buffersize) - remaining + size) % pipe -> buffersize;
+
+    for(int i = 0; i < size; i++) {
+      pipe -> pipebuffer[((pipe -> start_occupied )+ i ) % (pipe -> buffersize)] = buffer[i];
+      test[((pipe -> start_occupied )+ i )% (pipe -> buffersize)] = buffer[i];
+    }
+    return size;
   }
 
   // define string Length
@@ -121,18 +129,41 @@ int myread(mypipe* pipe, BYTE* buffer, int size) {
   // respecting size of buffer
   *buffer = 0;
   *read = 0;
+
+  // carryover case 
+  if(size > ( pipe -> buffersize - pipe -> start_occupied)) {
+    printf("Carryover read\n");
+    pipe ->start_occupied = pipe -> end_occupied;
+    int remaining = pipe -> buffersize - (pipe -> end_occupied);
+    pipe -> end_occupied = ((pipe ->buffersize) - remaining + size) % pipe -> buffersize;
+
+    for(int i = 0; i < size; i++) {
+      buffer[i] = pipe -> pipebuffer[((pipe -> start_occupied )+ i ) % (pipe -> buffersize)];
+      read[i] = test[((pipe -> start_occupied )+ i )% (pipe -> buffersize)];
+    }
+    return size;
+  }
+  
   if(size > pipe -> buffersize) {
-    strncpy(buffer, pipe -> pipebuffer, pipe -> buffersize);
-    // move the previous forward & memset pipebuffer
+    for(int i = pipe -> start_occupied; i < pipe -> start_occupied + pipe -> buffersize; i++) {
+      buffer[i - (pipe -> start_occupied)] = pipe -> pipebuffer[i];
+      read[i - (pipe -> start_occupied)] = pipe -> pipebuffer[i];
+      pipe -> pipebuffer[i] = 0;
+      test[i] = 0;
+    }
+
+    pipe -> start_occupied = pipe -> buffersize;
     return pipe -> buffersize;
   } else {
 
     for(int i = pipe -> start_occupied; i < pipe -> start_occupied + size; i++) {
       buffer[i - (pipe -> start_occupied)] = pipe -> pipebuffer[i];
       read[i - (pipe -> start_occupied)] = pipe -> pipebuffer[i];
+      pipe -> pipebuffer[i] = 0;
+      test[i] = 0;
     }
 
-    pipe -> start_occupied = size;
+    pipe -> start_occupied += size;
   }
   return size;
 }
