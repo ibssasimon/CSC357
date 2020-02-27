@@ -72,7 +72,7 @@ void init_pipe(mypipe* pipe, int size) {
 
 int mywrite(mypipe* pipe, BYTE* buffer, int size) {
   // set start tag
-  pipe -> start_occupied = 1;
+  pipe -> start_occupied = 0;
 
   // define string Length
   int stringLength = strlen(buffer);
@@ -89,8 +89,8 @@ int mywrite(mypipe* pipe, BYTE* buffer, int size) {
 
   for(int i = 0; i < size; i++) {
     if(i < stringLength) {
-      strcpy(pipe -> pipebuffer, buffer);
-      strcpy(test, pipe -> pipebuffer);
+      pipe -> pipebuffer[i + (pipe -> end_occupied - stringLength)] = buffer[i];
+      test[i + (pipe -> end_occupied - stringLength)] = pipe -> pipebuffer[i + (pipe -> end_occupied - stringLength)];
     } else {
       pipe -> end_occupied += 1;
     }
@@ -104,15 +104,19 @@ int mywrite(mypipe* pipe, BYTE* buffer, int size) {
 
 int myread(mypipe* pipe, BYTE* buffer, int size) {
   // set start and end flags
-  pipe -> start_occupied = 0;
-  pipe -> end_occupied = 1;
+  //pipe -> start_occupied = 0;
+  // pipe -> end_occupied = 1;
   // respecting size of buffer
   if(size > pipe -> buffersize) {
     strncpy(buffer, pipe -> pipebuffer, pipe -> buffersize);
     // move the previous forward & memset pipebuffer
     return pipe -> buffersize;
   } else {
-    strncpy(buffer, pipe->pipebuffer, size);
+
+    for(int i = pipe -> start_occupied; i < pipe -> end_occupied; i++) {
+      buffer[i] = pipe -> pipebuffer[i];
+    }
+    pipe -> start_occupied = size;
   }
   return size;
 }
