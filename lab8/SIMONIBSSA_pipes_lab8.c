@@ -26,22 +26,27 @@ int mywrite(mypipe *pipe,BYTE* buffer, int size);
 int myread(mypipe* pipe, BYTE* buffer, int size);
 
 
-
+char test[100] = "";
 int main() {
   char text[100];
   mypipe pipeA;
 
   init_pipe(&pipeA, 32);
+  // strcat removing \0 (1)
   mywrite(&pipeA, "hello world", 12);
   mywrite(&pipeA, "it's a nice day", 16);
 
-  myread(&pipeA, text, 12);
-  printf("%s\n", text);
   // do we read only 16 bytes including hello world, or 16 bytes after hello world?
+  myread(&pipeA, text, 12);
+  printf("reading 12 bytes: %s\n", text);
   myread(&pipeA, text, 16);
-  printf("%s\n", text);
-  //myread(&pipeA, text, 16);
-  //printf("%s\n", text);
+  printf("reading 16 bytes: %s\n", text);
+
+  // only reading 29 bytes? How to test carryover(2)
+  mywrite(&pipeA, "and now we test the carryover", 30);
+  myread(&pipeA, text, 30);
+  printf("reading 30 bytes: %s\n", text);
+  // expected output? (3)
   return 0;
 }
 
@@ -53,6 +58,9 @@ int main() {
 void init_pipe(mypipe* pipe, int size) {
   // malloc size for pipe. I think?
   pipe -> pipebuffer = (mypipe*)malloc(size);
+  for(int i = 0; i < strlen(pipe -> pipebuffer); i++) {
+    pipe -> pipebuffer[i] = 0; 
+  }
   pipe -> buffersize = size;
 
   // set start and end
@@ -65,15 +73,29 @@ void init_pipe(mypipe* pipe, int size) {
 int mywrite(mypipe* pipe, BYTE* buffer, int size) {
   // set start tag
   pipe -> start_occupied = 1;
-   // set end occupied
-  pipe -> end_occupied = 0;
+
+  // define string Length
+  int stringLength = strlen(buffer);
+   
   if(size > pipe -> buffersize) {
     strncat(pipe -> pipebuffer, buffer, pipe -> buffersize);
     return pipe -> buffersize;
   }
   
-  // strcat string to buffer
-  strncat(pipe -> pipebuffer, buffer, size);
+  
+
+  // set end occupied
+  pipe -> end_occupied += stringLength;
+
+  for(int i = 0; i < size; i++) {
+    if(i < stringLength) {
+      strcpy(pipe -> pipebuffer, buffer);
+      strcpy(test, pipe -> pipebuffer);
+    } else {
+      pipe -> end_occupied += 1;
+    }
+  }
+  //strncat(pipe -> pipebuffer, buffer, size);
 
  
   return size;
@@ -87,6 +109,7 @@ int myread(mypipe* pipe, BYTE* buffer, int size) {
   // respecting size of buffer
   if(size > pipe -> buffersize) {
     strncpy(buffer, pipe -> pipebuffer, pipe -> buffersize);
+    // move the previous forward & memset pipebuffer
     return pipe -> buffersize;
   } else {
     strncpy(buffer, pipe->pipebuffer, size);
