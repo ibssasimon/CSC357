@@ -38,13 +38,13 @@ int main() {
   mywrite(&pipeA, "it's a nice day", 16);
 
   myread(&pipeA, text, 12);
-  printf("reading 12 bytes: %s\n", text);
+  printf("%s\n", text);
   myread(&pipeA, text, 16);
-  printf("reading 16 bytes: %s\n", text);
+  printf("%s\n", text);
 
   mywrite(&pipeA, "and now we test the carryover", 30);
   myread(&pipeA, text, 30);
-  printf("reading 30 bytes: %s\n", text);
+  printf("%s\n", text);
   return 0;
 }
 
