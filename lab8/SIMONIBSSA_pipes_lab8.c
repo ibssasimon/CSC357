@@ -72,14 +72,25 @@ void init_pipe(mypipe* pipe, int size) {
 
 
 int mywrite(mypipe* pipe, BYTE* buffer, int size) {
-  // set start tag
-  pipe -> start_occupied = 0;
+
+  // carryover case 
+  if(size > ( pipe -> buffersize - pipe -> start_occupied)) {
+    pipe -> start_occupied = 0;
+    pipe -> end_occupied = 0;
+  }
 
   // define string Length
   int stringLength = strlen(buffer);
    
   if(size > pipe -> buffersize) {
-    strncat(pipe -> pipebuffer, buffer, pipe -> buffersize);
+    for(int i = 0; i < stringLength; i++) {
+      if(i < stringLength) {
+        pipe -> pipebuffer[i + (pipe -> end_occupied - stringLength)] = buffer[i];
+        test[i + (pipe -> end_occupied - stringLength)] = pipe -> pipebuffer[i + (pipe -> end_occupied - stringLength)];
+      } else {
+        pipe -> end_occupied += 1;
+      }
+    }
     return pipe -> buffersize;
   }
   
@@ -87,6 +98,7 @@ int mywrite(mypipe* pipe, BYTE* buffer, int size) {
 
   // set end occupied
   pipe -> end_occupied += stringLength;
+  pipe -> end_occupied = (pipe -> end_occupied % pipe -> buffersize);
 
   for(int i = 0; i < size; i++) {
     if(i < stringLength) {
@@ -96,7 +108,6 @@ int mywrite(mypipe* pipe, BYTE* buffer, int size) {
       pipe -> end_occupied += 1;
     }
   }
-  //strncat(pipe -> pipebuffer, buffer, size);
 
  
   return size;
