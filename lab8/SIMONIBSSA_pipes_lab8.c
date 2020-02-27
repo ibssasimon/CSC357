@@ -37,17 +37,14 @@ int main() {
   mywrite(&pipeA, "hello world", 12);
   mywrite(&pipeA, "it's a nice day", 16);
 
-  // do we read only 16 bytes including hello world, or 16 bytes after hello world?
   myread(&pipeA, text, 12);
   printf("reading 12 bytes: %s\n", text);
   myread(&pipeA, text, 16);
   printf("reading 16 bytes: %s\n", text);
 
-  // only reading 29 bytes? How to test carryover(2)
   mywrite(&pipeA, "and now we test the carryover", 30);
-  myread(&pipeA, text, 16);
+  myread(&pipeA, text, 30);
   printf("reading 30 bytes: %s\n", text);
-  // expected output? (3)
   return 0;
 }
 
@@ -75,10 +72,9 @@ int mywrite(mypipe* pipe, BYTE* buffer, int size) {
 
   // carryover case 
   if(size > ( pipe -> buffersize - pipe -> start_occupied)) {
-    printf("Carryover write\n");
-    pipe ->start_occupied = pipe -> end_occupied;
     int remaining = pipe -> buffersize - (pipe -> end_occupied);
     pipe -> end_occupied = ((pipe ->buffersize) - remaining + size) % pipe -> buffersize;
+    pipe ->start_occupied = pipe -> end_occupied;
 
     for(int i = 0; i < size; i++) {
       pipe -> pipebuffer[((pipe -> start_occupied )+ i ) % (pipe -> buffersize)] = buffer[i];
@@ -128,11 +124,9 @@ int myread(mypipe* pipe, BYTE* buffer, int size) {
   // pipe -> end_occupied = 1;
   // respecting size of buffer
   *buffer = 0;
-  *read = 0;
 
   // carryover case 
   if(size > ( pipe -> buffersize - pipe -> start_occupied)) {
-    printf("Carryover read\n");
     pipe ->start_occupied = pipe -> end_occupied;
     int remaining = pipe -> buffersize - (pipe -> end_occupied);
     pipe -> end_occupied = ((pipe ->buffersize) - remaining + size) % pipe -> buffersize;
