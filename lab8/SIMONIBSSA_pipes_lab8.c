@@ -27,6 +27,7 @@ int myread(mypipe* pipe, BYTE* buffer, int size);
 
 
 char test[100] = "";
+char read[100] = "";
 int main() {
   char text[100];
   mypipe pipeA;
@@ -113,9 +114,11 @@ int myread(mypipe* pipe, BYTE* buffer, int size) {
     return pipe -> buffersize;
   } else {
 
-    for(int i = pipe -> start_occupied; i < pipe -> end_occupied; i++) {
+    for(int i = pipe -> start_occupied; i < size; i++) {
       buffer[i] = pipe -> pipebuffer[i];
+      read[i] = pipe -> pipebuffer[i];
     }
+
     pipe -> start_occupied = size;
   }
   return size;
