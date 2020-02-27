@@ -134,6 +134,8 @@ int myread(mypipe* pipe, BYTE* buffer, int size) {
     for(int i = 0; i < size; i++) {
       buffer[i] = pipe -> pipebuffer[((pipe -> start_occupied )+ i ) % (pipe -> buffersize)];
       read[i] = test[((pipe -> start_occupied )+ i )% (pipe -> buffersize)];
+      pipe -> pipebuffer[((pipe -> start_occupied )+ i ) % (pipe -> buffersize)] = 0;
+      test[((pipe -> start_occupied )+ i ) % (pipe -> buffersize)] = 0;
     }
     return size;
   }
