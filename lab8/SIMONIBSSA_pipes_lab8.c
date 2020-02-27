@@ -108,15 +108,17 @@ int myread(mypipe* pipe, BYTE* buffer, int size) {
   //pipe -> start_occupied = 0;
   // pipe -> end_occupied = 1;
   // respecting size of buffer
+  *buffer = 0;
+  *read = 0;
   if(size > pipe -> buffersize) {
     strncpy(buffer, pipe -> pipebuffer, pipe -> buffersize);
     // move the previous forward & memset pipebuffer
     return pipe -> buffersize;
   } else {
 
-    for(int i = pipe -> start_occupied; i < size; i++) {
-      buffer[i] = pipe -> pipebuffer[i];
-      read[i] = pipe -> pipebuffer[i];
+    for(int i = pipe -> start_occupied; i < pipe -> start_occupied + size; i++) {
+      buffer[i - (pipe -> start_occupied)] = pipe -> pipebuffer[i];
+      read[i - (pipe -> start_occupied)] = pipe -> pipebuffer[i];
     }
 
     pipe -> start_occupied = size;
