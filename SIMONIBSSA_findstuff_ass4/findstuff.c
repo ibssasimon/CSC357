@@ -16,9 +16,6 @@ DIR* dir;
 int* childPid;
 
 int main() {
-  printf("find stuff program\n");
-
-
   int g;
 
   childPid = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
@@ -44,11 +41,11 @@ int main() {
     while(1) {
       *active = 0;
       printf("\033[0;34m"); // set output color to blue
-      printf("Simon Ibssa A3:");
+      printf("find stuff");
       // print current directory
 
       if(getcwd(directory, sizeof(directory)) != NULL) {
-        printf("%s", directory);
+        // usually would print dir here
       }
 
       printf("\033[0m"); //Resets the text to default color
