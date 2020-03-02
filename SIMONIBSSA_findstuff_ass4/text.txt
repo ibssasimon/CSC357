@@ -1,0 +1,2 @@
+This is my test text file. My name is Simon and I'm enrolled in CSC 357!
+Couple of extra lines just for good measure.
