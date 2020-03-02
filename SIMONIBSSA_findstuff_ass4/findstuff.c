@@ -16,6 +16,9 @@ struct dirent* dent;
 DIR* dir;
 int* childPid;
 
+// function declaration
+bool get_argument(char* line, int argn, char* result);
+
 int main() {
   // vars
   printf("Starting program\n");
@@ -27,8 +30,9 @@ int main() {
   *q = 0;
   int* OGParent = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   char userBuffer[100];
-  char* flag = (char*)mmap(NULL, sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  char* flag = (char*)mmap(NULL,  3* sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   *flag = '\0';
+  flag[2] = '\0';
 
   while(1) {
     printf("Entering program\n");
@@ -36,7 +40,7 @@ int main() {
     printf("find stuff");
     printf("\033[0m"); //Resets the text to default color
     printf("$ ");
-    
+    fflush(0);
     // reading default user input
     read(0, userBuffer, 100);
 
@@ -52,11 +56,13 @@ int main() {
           // out of bounds wrapping
           if(i + 1 < strlen(userBuffer)) {
             if(userBuffer[i+1] == 's') {
-              *flag = "-s";
+              flag[0] = '-';
+              flag[1] = 's';
               break;
             }
             if(userBuffer[i+1] == 'f') {
-              *flag = "-f";
+              flag[0] = '-';
+              flag[1] = 'f';
               break;
             }
 
@@ -64,7 +70,13 @@ int main() {
         }
       }
 
-
+      // call get_argument with 2. If flag is -f call get argument again with 3 and strcat -s to flag
+      int flagSuccess = get_argument(userBuffer, 2, flag);
+      printf("flag: %s\n", flag);
+      char fileName[100];
+      int fileSucess = get_argument(userBuffer, 1, fileName);
+      printf("my file name: %s\n", fileName);
+      return 0;
       // start fork to find file in dir
       if(fork() == 0) {
         // child case
