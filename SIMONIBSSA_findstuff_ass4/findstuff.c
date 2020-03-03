@@ -18,8 +18,14 @@ int* childPid;
 
 // function declaration
 bool get_argument(char* line, int argn, char* result);
+void reportChild(int n);
+
 
 int main() {
+
+  // defining signal handlers
+  signal(SIGUSR1, reportChild);
+
   // vars
   printf("Starting program\n");
   int g;
@@ -33,7 +39,10 @@ int main() {
   char* flag = (char*)mmap(NULL,  3* sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   *flag = '\0';
   flag[2] = '\0';
-
+  
+  // update parent PID
+  *OGParent = getpid();
+  
   while(1) {
     printf("Entering program\n");
     printf("\033[0;34m"); // set output color to blue
@@ -44,45 +53,29 @@ int main() {
     // reading default user input
     read(0, userBuffer, 100);
 
-
-    // update parent PID
-    *OGParent = getpid();
+    fflush(0);
+    
     if(strncmp("find", userBuffer, 4) == 0) {
       // fork and find file
-
-      // finding flag
-      for(int i = 0; i < strlen(userBuffer); i++) {
-        if(userBuffer[i] == '-') {
-          // out of bounds wrapping
-          if(i + 1 < strlen(userBuffer)) {
-            if(userBuffer[i+1] == 's') {
-              flag[0] = '-';
-              flag[1] = 's';
-              break;
-            }
-            if(userBuffer[i+1] == 'f') {
-              flag[0] = '-';
-              flag[1] = 'f';
-              break;
-            }
-
-          }
-        }
-      }
 
       // call get_argument with 2. If flag is -f call get argument again with 3 and strcat -s to flag
       int flagSuccess = get_argument(userBuffer, 2, flag);
       printf("flag: %s\n", flag);
-      char fileName[100];
+      char fileName[100] = "";
       int fileSucess = get_argument(userBuffer, 1, fileName);
       printf("my file name: %s\n", fileName);
-      return 0;
+      
+      fflush(0);
+      
       // start fork to find file in dir
       if(fork() == 0) {
         // child case
         *childPid = getpid();
         char directory[PATH_MAX];
-
+        
+        
+        // For the flag situations -- currently I'm breaking out of loops before sending interrupt signal. That part is broken.
+        /* TODO(sibssa): send interrupt signal to parent process */
         if(*flag == '\0') {
           // no flag is set, search current dir
           strcpy(directory, ".");
@@ -90,16 +83,103 @@ int main() {
 
           if(dir != NULL) {
             for(dent = readdir(dir); dent != NULL; dent = readdir(dir)) {
-              printf("searching ....%s", dent -> d_name);
-
-              if(dent -> d_type == DT_DIR) {
-                printf(" - is a directory");
+              // compare file names
+              if(strncmp(dent -> d_name, fileName, strlen(fileName) - 1) == 0) {
+                if(getcwd(directory, sizeof(directory)) != NULL) {
+                  printf("WE GOT EM: %s\n", directory);
+                }
+                printf("I FOUND: %s", fileName);
+                break;
+                kill(*OGParent, SIGUSR1);
               }
-              printf("\n");
+
             }
           }
-
         }
+
+        if(flag[1] == 's') {
+          // search all subdirectories
+          char tempBuffer[100] = "";
+          printf("searching all subdirectories\n");
+
+          strcpy(directory, ".");
+          dir = opendir(directory);
+
+          if(dir != NULL) {
+            for(dent = readdir(dir); dent != NULL; dent = readdir(dir)) {
+
+              if(dent ->d_type == DT_DIR) {
+                // modify dir to contain subdirectory
+                DIR* dir2;
+                struct dirent* dent2;
+                strcat(tempBuffer, "/");
+                strcat(tempBuffer, dent -> d_name);
+
+                strcat(directory, tempBuffer);
+
+                // open subdirectory to search for file
+                dir2 = opendir(directory);
+                if(dir2 != NULL) {
+                  for(dent2 = readdir(dir); dent2 != NULL; dent2 = readdir(dir2)) {
+                    if(strncmp(dent2 -> d_name, fileName, strlen(fileName) - 1) == 0) {
+                      chdir(directory);
+                      if(getcwd(directory, sizeof(directory)) != NULL) {
+                        printf("WE GOT EM: %s\n", directory);
+                      }
+                      printf("I FOUND: %s\n", fileName);
+                      break;
+                      kill(*OGParent, SIGUSR1);
+                    }
+                  }
+                }
+              
+                // check to see if we actually moved into a subdir or just current dir
+                if(tempBuffer[2] != 0) {
+                  // updating dir after searching subdirectory
+                  for(int i = strlen(directory); i > 0; i--) {
+                    // remove first /
+                    if(directory[i] == '/') {
+                      directory[i] = '\0';
+                      break;
+                    }
+                  }
+                }
+              }
+              memset(tempBuffer, 0, strlen(tempBuffer));
+            }
+          }
+        }
+
+      // Algorithm to search subdirectories of current dir
+      
+        
+          /* 
+          *tempBuffer = '\0';
+        char* token;
+        strcat(tempBuffer, "/");
+
+        token = strtok(userInput, "/");
+        while(token != NULL) {
+          strcat(tempBuffer, token);
+          token = strtok(NULL, userInput);
+        }
+        strcat(directory, tempBuffer);
+
+        // OPEN SUB DIRECTORY HERE
+        dir = opendir(directory);
+        /* TODO(sibssa): move into subdirectory 
+
+        if(dir != NULL) {
+          printf("opening: %s\n", tempBuffer);
+        } else {
+          printf("Folder does not exist!\n");
+        }
+        chdir(directory);
+        continue;
+          
+          
+          */
+        
       } else {
         // parent case
       }
@@ -275,4 +355,8 @@ bool get_argument(char* line, int argn, char* result) {
 			count++;
 		}
 	return 0;
+}
+
+void reportChild(int n) {
+  printf("Child found something! Do stuff here\n");
 }
