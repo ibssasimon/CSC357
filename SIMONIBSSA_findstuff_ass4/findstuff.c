@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 // global vars
 struct stat st;
@@ -36,15 +37,17 @@ int main() {
   *q = 0;
   int* OGParent = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   char userBuffer[100];
-  char* flag = (char*)mmap(NULL,  3* sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  char* flag = (char*)mmap(NULL,  5* sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   *flag = '\0';
   flag[2] = '\0';
   
+
+  fflush(0);
   // update parent PID
   *OGParent = getpid();
-  
+  fflush(0);
+  printf("parent pid: %s", OGParent);
   while(1) {
-    printf("Entering program\n");
     printf("\033[0;34m"); // set output color to blue
     printf("find stuff");
     printf("\033[0m"); //Resets the text to default color
@@ -60,6 +63,12 @@ int main() {
 
       // call get_argument with 2. If flag is -f call get argument again with 3 and strcat -s to flag
       int flagSuccess = get_argument(userBuffer, 2, flag);
+      if(flag[1] == 'f') {
+        // strcat -s
+        char tempflag[5] = "";
+        int flagSuccess2 = get_argument(userBuffer, 3, tempflag);
+        strcat(flag, tempflag);
+      }
       printf("flag: %s\n", flag);
       char fileName[100] = "";
       int fileSucess = get_argument(userBuffer, 1, fileName);
@@ -183,9 +192,24 @@ int main() {
       } else {
         // parent case
       }
-      return 0;
 
       
+    }
+
+    /* TODO(sibssa): segfaulting when killing PID that user enters */
+    if(strncmp("kill", userBuffer, 3) == 0) {
+      printf("kill this mothafucka\n");
+      char pid[10] = "";
+      int pidSuccess = get_argument(userBuffer, 1, pid);
+      pid[strlen(pid) - 1] = '\0';
+      printf("killing: %s", pid);
+      int iPid = atoi(pid);
+      kill(atoi(pid), SIGKILL);
+    }
+
+    if(strncmp("q", userBuffer, 1) == 0) {
+      printf("Exiting program....\n");
+      return 0;
     }
   }
 
