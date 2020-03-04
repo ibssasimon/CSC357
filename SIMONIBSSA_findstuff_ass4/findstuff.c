@@ -40,13 +40,15 @@ int main() {
   char* flag = (char*)mmap(NULL,  5* sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   *flag = '\0';
   flag[2] = '\0';
+  int* childPIDS = (int*)mmap(NULL, 10* sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   
 
   fflush(0);
   // update parent PID
   *OGParent = getpid();
   fflush(0);
-  printf("parent pid: %s", OGParent);
+  printf("parent pid: %d\n", OGParent);
+  int i = -1;
   while(1) {
     printf("\033[0;34m"); // set output color to blue
     printf("find stuff");
@@ -79,7 +81,9 @@ int main() {
       // start fork to find file in dir
       if(fork() == 0) {
         // child case
+        i++;
         *childPid = getpid();
+        childPIDS[i] = *childPid;
         char directory[PATH_MAX];
         
         
