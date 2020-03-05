@@ -10,17 +10,20 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <errno.h>
 
 // global vars
 struct stat st;
 struct dirent* dent;
 DIR* dir;
 int* childPid;
+int* OGParent;
 
 // function declaration
 bool get_argument(char* line, int argn, char* result);
 void add_null_term(char *txt);
 void reportChild(int n);
+static void list_dir (const char * dir_name, char* fileName);
 
 // file descriptors
 int fd[2];
@@ -39,17 +42,20 @@ int main() {
   *active = 0;
   int* q = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   *q = 0;
-  int* OGParent = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  OGParent = mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   char userBuffer[100];
   char* flag = (char*)mmap(NULL,  5* sizeof(char), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
   *flag = '\0';
   flag[2] = '\0';
   int* childPIDS = (int*)mmap(NULL, 10* sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+  int* tasks = (int*)mmap(NULL, 10* sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+
 
   // pipe for file descriptors
   pipe(fd);
   int save_stdin = dup(STDIN_FILENO);
 
+  /* TODO(sibssa): get list, kill working, and subdir of subdir working */
   
 
   fflush(0);
@@ -59,7 +65,7 @@ int main() {
   printf("parent pid: %d\n", *OGParent);
   int childIndex = 0;
   while(1) {
-    printf("\033[0;34m"); // set output color to blue
+    printf("\n\033[0;34m"); // set output color to blue
     printf("find stuff");
     printf("\033[0m"); //Resets the text to default color
     printf("$ ");
@@ -73,11 +79,31 @@ int main() {
     if(override == 0) {
       add_null_term(userBuffer);//to get a NULL at the end of the string in case of a user input
     }
-
+    printf("%s\n",userBuffer);
     fflush(0);
 
     if(strncmp("q", userBuffer, 1) == 0) {
+      kill(*OGParent, SIGKILL);
       return 0;
+    }
+
+
+    if(strncmp("list ..", userBuffer, 7) == 0) {
+      printf("kid processes running: ");
+      printf("[");
+      for(int i = 0; i < 10; i++) {
+        if(tasks[i] != 0) {
+          printf("kid %d is searching for file", childPIDS[i]);
+        } else {
+          printf("%d, ", childPIDS[i]);
+        }
+        if(i == 9) {
+          printf("%d", childPIDS[i]);
+          break;
+        }
+      }
+      printf("]\n");
+
     }
 
     // print f here
@@ -93,10 +119,9 @@ int main() {
         int flagSuccess2 = get_argument(userBuffer, 3, tempflag);
         strcat(flag, tempflag);
       }
-      printf("flag: %s\n", flag);
+      printf("my flag: %s\n", flag);
       char fileName[100] = "";
       int fileSucess = get_argument(userBuffer, 1, fileName);
-      printf("my file name: %s\n", fileName);
       
       fflush(0);
       
@@ -105,6 +130,7 @@ int main() {
         // child case
         *childPid = getpid();
         childPIDS[childIndex] = *childPid;
+        tasks[childIndex] = 1;
         childIndex++;
         char directory[PATH_MAX];
         
@@ -115,10 +141,12 @@ int main() {
           // no flag is set, search current dir
           strcpy(directory, ".");
           dir = opendir(directory);
-
-          char result[10000] = "";
           int kidnum=0;
+          char result[10000] = "";
+        
           for(int i=0;i<10;i++) if(childPIDS[i]==0) {childPIDS[i]=getpid();kidnum=i;break;}
+          
+          sprintf(result,"\nkid %d is reporting!",kidnum);
           // build up result then pipe it
           if(dir != NULL) {
             for(dent = readdir(dir); dent != NULL; dent = readdir(dir)) {
@@ -126,9 +154,13 @@ int main() {
               if(strncmp(dent -> d_name, fileName, strlen(fileName) - 1) == 0) {
                 // piping dir and filename
                 // close read
-                printf("found stuff: %s", fileName);
+                strcat(result, "\n");
+                strncat(result, fileName,strlen(fileName)-1);
+                strcat(result, " in ");
+                strcat(result, directory);
+                strcat(result, "\n");
                 if(getcwd(directory, sizeof(directory)) != NULL) {
-                  printf(" in: %s\n", directory);
+                 // printf(" in: %s\n", directory);
                 }
                   break;
                // close(fd[0]);
@@ -145,16 +177,27 @@ int main() {
 
             }
           }
+          result[strlen(result)]=0;
+          write(fd[1],result,strlen(result)+1);
+          close(fd[1]); //close write  
           kill(*OGParent, SIGUSR1);
+          strcpy(result, 0);
         }
 
         // Algorithm to search subdirectories of current dir
         if(flag[1] == 's') {
           char tempBuffer[100] = "";
-          printf("searching all subdirectories\n");
-
           strcpy(directory, ".");
           dir = opendir(directory);
+          int kidnum=0;
+          char result[10000] = "";
+        
+          for(int i=0;i<10;i++) if(childPIDS[i]==0) {childPIDS[i]=getpid();kidnum=i;break;}
+          
+          sprintf(result,"\nkid %d is reporting!",kidnum);
+          /*if(getcwd(directory, sizeof(directory)) != NULL) {
+            list_dir(directory, fileName);
+          }*/
 
           if(dir != NULL) {
             for(dent = readdir(dir); dent != NULL; dent = readdir(dir)) {
@@ -174,12 +217,12 @@ int main() {
                   for(dent2 = readdir(dir); dent2 != NULL; dent2 = readdir(dir2)) {
                     if(strncmp(dent2 -> d_name, fileName, strlen(fileName) - 1) == 0) {
                       chdir(directory);
-                      if(getcwd(directory, sizeof(directory)) != NULL) {
-                        printf("found stuff: %s", fileName);
-                        printf("in: %s\n", directory);
-                      }
-                      break;
-                      kill(*OGParent, SIGUSR1);
+                      printf("found: %s", fileName);
+                      printf("in: %s\n", directory);
+                    if(getcwd(directory, sizeof(directory)) != NULL) {
+                      // printf(" in: %s\n", directory);
+                    }
+                    break;
                     }
                   }
                 }
@@ -199,6 +242,13 @@ int main() {
               memset(tempBuffer, 0, strlen(tempBuffer));
             }
           }
+
+
+          result[strlen(result)]=0;
+          write(fd[1],result,strlen(result)+1);
+          close(fd[1]); //close write  
+          kill(*OGParent, SIGUSR1);
+          strcpy(result, 0);
         }      
 
         
@@ -211,13 +261,12 @@ int main() {
 
     /* TODO(sibssa): segfaulting when killing PID that user enters */
     if(strncmp("kill", userBuffer, 3) == 0) {
-      printf("kill this mothafucka\n");
       char pid[10] = "";
       int pidSuccess = get_argument(userBuffer, 1, pid);
       pid[strlen(pid) - 1] = '\0';
       printf("killing: %s", pid);
       int iPid = atoi(pid);
-      //kill(atoi(pid), SIGKILL);
+      kill(atoi(pid), SIGKILL);
     }
   }
 
@@ -279,4 +328,106 @@ for(int i=0;i<100;i++)
 void reportChild(int n) {
   dup2(fd[0],STDIN_FILENO); //Overwrite userinput
   override=1;
+}
+
+
+
+static void list_dir (const char * dir_name, char* fileName) {
+    DIR * d;
+
+    /* Open the directory specified by "dir_name". */
+
+    d = opendir (dir_name);
+
+    /* Check it was opened. */
+    if (! d) {
+        fprintf (stderr, "Cannot open directory '%s': %s\n",
+                 dir_name, strerror (errno));
+        exit (EXIT_FAILURE);
+    }
+    while (1) {
+        struct dirent * entry;
+        const char * d_name;
+
+        /* "Readdir" gets subsequent entries from "d". */
+        entry = readdir (d);
+        if (! entry) {
+            /* There are no more entries in this directory, so break
+               out of the while loop. */
+            break;
+        }
+        d_name = entry->d_name;
+        /* Print the name of the file and directory. */
+	//printf ("%s/%s\n", dir_name, d_name);
+  char potentialResult[1000] = "";
+  strcat(potentialResult, dir_name);
+  strcat(potentialResult, "FILE");
+  strcat(potentialResult, d_name);
+  printf("%s", potentialResult);
+  
+  bool match = false;
+  for(int i = strlen(potentialResult); i > 0; i--) {
+    if(potentialResult[i] == '/') {
+      int k = 0;
+      for(int j = i+1; j < strlen(fileName); i++) {
+        if(potentialResult[j] == fileName[k]) {
+          match = true;
+          k++;
+        }
+      }
+    }
+  }
+  if(match) {
+    /* pipe stuff */
+    strcpy(potentialResult, 0);
+    strcat(potentialResult, "\n");
+    strncat(potentialResult, fileName,strlen(fileName)-1);
+    strcat(potentialResult, " in ");
+    strcat(potentialResult, dir_name);
+    strcat(potentialResult, "\n");
+  }
+
+
+  strcpy(potentialResult, 0);
+
+  
+
+#if 0
+	/* If you don't want to print the directories, use the
+	   following line: */
+
+        if (! (entry->d_type & DT_DIR)) {
+	    printf ("%s/%s\n", dir_name, d_name);
+	}
+
+#endif /* 0 */
+
+
+        if (entry->d_type & DT_DIR) {
+
+            /* Check that the directory is not "d" or d's parent. */
+            
+            if (strcmp (d_name, "..") != 0 &&
+                strcmp (d_name, ".") != 0) {
+                int path_length;
+                char path[PATH_MAX];
+ 
+                path_length = snprintf (path, PATH_MAX,
+                                        "%s/%s", dir_name, d_name);
+                printf ("%s\n", path);
+                if (path_length >= PATH_MAX) {
+                    fprintf (stderr, "Path length has got too long.\n");
+                    exit (EXIT_FAILURE);
+                }
+                /* Recursively call "list_dir" with the new path. */
+                list_dir (path, fileName);
+            }
+	}
+    }
+    /* After going through all the entries, close the directory. */
+    if (closedir (d)) {
+        fprintf (stderr, "Could not close '%s': %s\n",
+                 dir_name, strerror (errno));
+        exit (EXIT_FAILURE);
+    }
 }
