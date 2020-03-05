@@ -21,6 +21,9 @@ int* childPid;
 bool get_argument(char* line, int argn, char* result);
 void reportChild(int n);
 
+// file descriptors
+int fd[2];
+int override = 0;
 
 int main() {
 
@@ -41,24 +44,48 @@ int main() {
   *flag = '\0';
   flag[2] = '\0';
   int* childPIDS = (int*)mmap(NULL, 10* sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+
+  // pipe for file descriptors
+  pipe(fd);
+  int save_stdin = dup(STDIN_FILENO);
+
   
 
   fflush(0);
   // update parent PID
   *OGParent = getpid();
   fflush(0);
-  printf("parent pid: %d\n", OGParent);
-  int i = -1;
+  printf("parent pid: %d\n", *OGParent);
+  int childIndex = 0;
   while(1) {
+    printf("child PIDS: [");
+    for(int i = 0; i < 10; i++) {
+      if(i == 9) {
+        printf("%d", childPIDS[i]);
+        break;
+      }
+      printf("%d, ", childPIDS[i]);
+    }
+    printf("]");
+    printf("\n");
+
     printf("\033[0;34m"); // set output color to blue
     printf("find stuff");
     printf("\033[0m"); //Resets the text to default color
     printf("$ ");
     fflush(0);
+    dup2(save_stdin,STDIN_FILENO);
+    override = 0;
     // reading default user input
-    read(0, userBuffer, 100);
+    read(0, userBuffer, 1000);
+
+    if(override == 0) {
+      add_null_term(userBuffer);//to get a NULL at the end of the string in case of a user input
+    }
 
     fflush(0);
+
+    // print f here
     
     if(strncmp("find", userBuffer, 4) == 0) {
       // fork and find file
@@ -81,9 +108,9 @@ int main() {
       // start fork to find file in dir
       if(fork() == 0) {
         // child case
-        i++;
         *childPid = getpid();
-        childPIDS[i] = *childPid;
+        childPIDS[childIndex] = *childPid;
+        childIndex++;
         char directory[PATH_MAX];
         
         
@@ -94,24 +121,36 @@ int main() {
           strcpy(directory, ".");
           dir = opendir(directory);
 
+          char result[10000] = "";
+          int kidnum=0;
+          for(int i=0;i<10;i++) if(childPIDS[i]==0) {childPIDS[i]=getpid();kidnum=i;break;}
+          // build up result then pipe it
           if(dir != NULL) {
             for(dent = readdir(dir); dent != NULL; dent = readdir(dir)) {
               // compare file names
               if(strncmp(dent -> d_name, fileName, strlen(fileName) - 1) == 0) {
-                if(getcwd(directory, sizeof(directory)) != NULL) {
-                  printf("WE GOT EM: %s\n", directory);
-                }
-                printf("I FOUND: %s", fileName);
+                // piping dir and filename
+                // close read
+                close(fd[0]);
+                sprintf(result,"kid %d is reporting!",kidnum);
+                strcat(result,"\nfound stuff:\n");
+                strcat(result, fileName);
+                strcat(result, " in ");
+                strcat(result, directory);
+                strcat(result, "\n");
+                strcat(result,"\0");//null terminator is important, because pipe!
+                write(fd[1],result,strlen(result));
+                close(fd[1]); //close write  
                 break;
-                kill(*OGParent, SIGUSR1);
               }
 
             }
           }
+          kill(*OGParent, SIGUSR1);
         }
 
+        // Algorithm to search subdirectories of current dir
         if(flag[1] == 's') {
-          // search all subdirectories
           char tempBuffer[100] = "";
           printf("searching all subdirectories\n");
 
@@ -161,37 +200,8 @@ int main() {
               memset(tempBuffer, 0, strlen(tempBuffer));
             }
           }
-        }
+        }      
 
-      // Algorithm to search subdirectories of current dir
-      
-        
-          /* 
-          *tempBuffer = '\0';
-        char* token;
-        strcat(tempBuffer, "/");
-
-        token = strtok(userInput, "/");
-        while(token != NULL) {
-          strcat(tempBuffer, token);
-          token = strtok(NULL, userInput);
-        }
-        strcat(directory, tempBuffer);
-
-        // OPEN SUB DIRECTORY HERE
-        dir = opendir(directory);
-        /* TODO(sibssa): move into subdirectory 
-
-        if(dir != NULL) {
-          printf("opening: %s\n", tempBuffer);
-        } else {
-          printf("Folder does not exist!\n");
-        }
-        chdir(directory);
-        continue;
-          
-          
-          */
         
       } else {
         // parent case
@@ -208,138 +218,15 @@ int main() {
       pid[strlen(pid) - 1] = '\0';
       printf("killing: %s", pid);
       int iPid = atoi(pid);
-      kill(atoi(pid), SIGKILL);
-    }
-
-    if(strncmp("q", userBuffer, 1) == 0) {
-      printf("Exiting program....\n");
-      return 0;
+      //kill(atoi(pid), SIGKILL);
     }
   }
 
 
-  /*
+    //killing the kid for good:
+    for(int i=0;i<10;i++) if(childPIDS[i]!=0)       waitpid(childPIDS[i],0,0);
+    printf("input check: %s",userBuffer);
 
-  ------- FOR FINDING TEXT -----
-  char fileName[1000];
-        int success = get_argument("hello world -s", 1, fileName);
-  --------------------------------------------
-  if(fork() == 0) {
-    // child case
-
-  } else {
-    char file[100];
-    char userInput[100];
-    char buffer[50];
-    char tempBuffer[50];
-    char directory[PATH_MAX];
-
-    fflush(0);
-
-    *childPid = getpid();
-    while(1) {
-      *active = 0;
-      printf("\033[0;34m"); // set output color to blue
-      printf("find stuff");
-      // print current directory
-
-      if(getcwd(directory, sizeof(directory)) != NULL) {
-        // usually would print dir here
-      }
-
-      printf("\033[0m"); //Resets the text to default color
-      printf("$ ");
-      scanf("%s", userInput);
-
-
-
-      if(strcmp(userInput, "..") == 0) {
-        strcpy(buffer, "..");
-        // update directory
-        for(int i = strlen(directory); i > 0; i--) {
-          // remove first /
-          if(directory[i] == '/') {
-            directory[i] = '\0';
-            break;
-          }
-        }
-        chdir(directory);
-        printf("moved up a directory!\n");
-        continue;
-      }
-
-      if(strncmp("/", userInput, 1) == 0) {
-        *tempBuffer = '\0';
-        char* token;
-        strcat(tempBuffer, "/");
-
-        token = strtok(userInput, "/");
-        while(token != NULL) {
-          strcat(tempBuffer, token);
-          token = strtok(NULL, userInput);
-        }
-        strcat(directory, tempBuffer);
-
-        // OPEN SUB DIRECTORY HERE
-        dir = opendir(directory);
-        /* TODO(sibssa): move into subdirectory 
-
-        if(dir != NULL) {
-          printf("opening: %s\n", tempBuffer);
-        } else {
-          printf("Folder does not exist!\n");
-        }
-        chdir(directory);
-        continue;
-      }
-      // listing content of current directory
-      if(strcmp(userInput, "list") == 0) {
-        if(strcmp(buffer, "..") == 0) {
-          strcpy(buffer, "..");
-        } else {
-          // opening current dir
-          strcpy(buffer, ".");
-        }
-        dir = opendir(directory);
-
-        if(dir != NULL) {
-          for(dent = readdir(dir); dent != NULL; dent = readdir(dir)) {
-            printf("%s", dent -> d_name);
-
-            if(dent -> d_type == DT_DIR) {
-              printf(" - is a directory");
-            }
-            printf("\n");
-          }
-        }
-      } else if(strcmp(userInput, "q") == 0) {
-        *q = 1;
-        return 0;
-      } else {
-        // assume it's a file name
-        int result = stat(userInput, &st);
-
-        if(result == -1) {
-          printf("Could not open file! Try again\n");
-        } else {
-          // printing file information
-          
-          printf("I-node number: %ld\n", (long)st.st_ino);
-          printf("Mode: %lo (octal)\n",(unsigned long)st.st_mode);
-          printf("Link count: %ld\n", (long) st.st_nlink);
-          printf("Ownership: UID=%ld GID=%ld\n", (long) st.st_uid, (long) st.st_gid);
-          printf("Preferred I/O block size: %ld bytes\n", (long) st.st_blksize);
-          printf("File size: %lld bytes\n", (long long) st.st_size);
-          printf("Blocks allocated: %lld\n", (long long) st.st_blocks);
-          printf("Last status change:       %s", ctime(&st.st_ctimespec));
-          printf("Last file access:         %s", ctime(&st.st_atimespec));
-          printf("Last file modification:   %s", ctime(&st.st_mtimespec));
-          printf("\n");
-        }
-
-      }
-    }
-  }*/
   return 0;
 }
 
@@ -386,5 +273,6 @@ bool get_argument(char* line, int argn, char* result) {
 }
 
 void reportChild(int n) {
-  printf("Child found something! Do stuff here\n");
+  dup2(fd[0],STDIN_FILENO); //Overwrite userinput
+  override=1;
 }
