@@ -19,6 +19,7 @@ int* childPid;
 
 // function declaration
 bool get_argument(char* line, int argn, char* result);
+void add_null_term(char *txt);
 void reportChild(int n);
 
 // file descriptors
@@ -58,17 +59,6 @@ int main() {
   printf("parent pid: %d\n", *OGParent);
   int childIndex = 0;
   while(1) {
-    printf("child PIDS: [");
-    for(int i = 0; i < 10; i++) {
-      if(i == 9) {
-        printf("%d", childPIDS[i]);
-        break;
-      }
-      printf("%d, ", childPIDS[i]);
-    }
-    printf("]");
-    printf("\n");
-
     printf("\033[0;34m"); // set output color to blue
     printf("find stuff");
     printf("\033[0m"); //Resets the text to default color
@@ -84,6 +74,10 @@ int main() {
     }
 
     fflush(0);
+
+    if(strncmp("q", userBuffer, 1) == 0) {
+      return 0;
+    }
 
     // print f here
     
@@ -131,17 +125,21 @@ int main() {
               if(strncmp(dent -> d_name, fileName, strlen(fileName) - 1) == 0) {
                 // piping dir and filename
                 // close read
-                close(fd[0]);
-                sprintf(result,"kid %d is reporting!",kidnum);
-                strcat(result,"\nfound stuff:\n");
-                strcat(result, fileName);
-                strcat(result, " in ");
-                strcat(result, directory);
-                strcat(result, "\n");
-                strcat(result,"\0");//null terminator is important, because pipe!
-                write(fd[1],result,strlen(result));
-                close(fd[1]); //close write  
-                break;
+                printf("found stuff: %s", fileName);
+                if(getcwd(directory, sizeof(directory)) != NULL) {
+                  printf(" in: %s\n", directory);
+                }
+                  break;
+               // close(fd[0]);
+               // sprintf(result,"kid %d is reporting!",kidnum);
+               // strcat(result,"\nfound stuff:\n");
+               // strcat(result, fileName);
+               // strcat(result, " in ");
+               // strcat(result, directory);
+               // strcat(result, "\n");
+               // strcat(result,"\0");//null terminator is important, because pipe!
+               // write(fd[1],result,strlen(result));
+                //close(fd[1]); //close write  
               }
 
             }
@@ -176,9 +174,9 @@ int main() {
                     if(strncmp(dent2 -> d_name, fileName, strlen(fileName) - 1) == 0) {
                       chdir(directory);
                       if(getcwd(directory, sizeof(directory)) != NULL) {
-                        printf("WE GOT EM: %s\n", directory);
+                        printf("found stuff: %s", fileName);
+                        printf("in: %s\n", directory);
                       }
-                      printf("I FOUND: %s\n", fileName);
                       break;
                       kill(*OGParent, SIGUSR1);
                     }
@@ -270,6 +268,11 @@ bool get_argument(char* line, int argn, char* result) {
 			count++;
 		}
 	return 0;
+}
+
+void add_null_term(char *txt){
+for(int i=0;i<100;i++)
+    if(txt[i]=='\n') {txt[i+1]=0;break;}
 }
 
 void reportChild(int n) {
