@@ -69,6 +69,7 @@ int main() {
     // reading default user input
     read(0, userBuffer, 1000);
 
+    /* TODO(sibssa): subdir searching */
     if(override == 0) {
       add_null_term(userBuffer);//to get a NULL at the end of the string in case of a user input
     }
