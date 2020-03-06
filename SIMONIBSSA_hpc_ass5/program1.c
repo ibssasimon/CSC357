@@ -11,6 +11,9 @@
 #define MATRIX_DIMENSION_XY 10
 
 
+/* Simon Ibssa, CSC 357 
+  Assignment 5, High Performance Programming 
+*/
 
 //SEARCH FOR TODO
 
@@ -60,6 +63,7 @@ void quadratic_matrix_multiplication(float *A,float *B,float *C) {
 //************************************************************************************************************************
 void synch(int par_id,int par_count,int *ready) {
   //TODO: synch algorithm. make sure, ALL processes get stuck here until all ARE here
+  // look at video, implement pseudocode here
 }
 //************************************************************************************************************************
 int main(int argc, char *argv[]) {
