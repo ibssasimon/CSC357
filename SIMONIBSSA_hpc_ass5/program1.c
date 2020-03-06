@@ -84,10 +84,23 @@ int main(int argc, char *argv[]) {
   if(par_id==0)
       {
       //TODO: init the shared memory for A,B,C, ready. shm_open with C_CREAT here! then ftruncate! then mmap
+      int size = 100 * sizeof(int);
+      int fd = shm_open("sharedMatrix", 0, O_RDWR | O_CREAT, 0777);
+      ftruncate(fd, size);
+      int *A = (int*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      int *B = (int*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      int *C = (int*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
       }
   else
       {
     //TODO: init the shared memory for A,B,C, ready. shm_open withOUT C_CREAT here! NO ftruncate! but yes to mmap
+      int size = 100 * sizeof(int);
+      int fd = shm_open("sharedMatrix", 0, O_RDWR, 0777);
+      int *A = (int*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      int *B = (int*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      int *C = (int*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
       sleep(2); //needed for initalizing synch
       }
 
