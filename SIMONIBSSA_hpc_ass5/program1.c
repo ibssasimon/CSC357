@@ -1,3 +1,17 @@
+/* Simon Ibssa, CSC 357 
+  Assignment 5, High Performance Programming 
+  README: (whoever is grading this)
+  
+  To Christian and Alec, the best Professor + TA Combo Alive. Seriously knowledgeable and down to earth guys. Keep hacking!
+
+  This quarter was awesome. And as I write this last 357 project in a coffee shop, I see how helpful both you have been.
+
+  And I have to be grateful for Zoom. Where would us students be without late night zoom calls? :D
+
+  Best,
+   
+  Simon
+*/
 #include <unistd.h>
 #include <signal.h>
 #include <string.h>
@@ -11,12 +25,14 @@
 #define MATRIX_DIMENSION_XY 10
 
 
-/* Simon Ibssa, CSC 357 
-  Assignment 5, High Performance Programming 
-*/
+
+// generates a random float between user inputted range
+float getRandomFloat( float min, float max ) {
+  float scale = rand() / (float) RAND_MAX; 
+  return min + scale * ( max - min );
+}
 
 //SEARCH FOR TODO
-
 
 //************************************************************************************************************************
 // sets one element of the matrix
@@ -24,6 +40,7 @@ void set_matrix_elem(float *M,int x,int y,float f) {
   M[x + y*MATRIX_DIMENSION_XY] = f;
 }
 //************************************************************************************************************************
+
 // lets see it both are the same
 int quadratic_matrix_compare(float *A,float *B) {
   for(int a = 0;a<MATRIX_DIMENSION_XY;a++)
@@ -34,6 +51,7 @@ int quadratic_matrix_compare(float *A,float *B) {
   return 1;
 }
 //************************************************************************************************************************
+
 //print a matrix
 void quadratic_matrix_print(float *C) {
   printf("\n");
@@ -45,7 +63,9 @@ void quadratic_matrix_print(float *C) {
       }
   printf("\n");
 }
+
 //************************************************************************************************************************
+
 // multiply two matrices
 void quadratic_matrix_multiplication(float *A,float *B,float *C) {
 	//nullify the result matrix first
@@ -60,13 +80,33 @@ void quadratic_matrix_multiplication(float *A,float *B,float *C) {
                   C[a + b*MATRIX_DIMENSION_XY] += A[c + b*MATRIX_DIMENSION_XY] * B[a + c*MATRIX_DIMENSION_XY]; 
               }
 }
+
+
 //************************************************************************************************************************
 void synch(int par_id,int par_count,int *ready) {
   //TODO: synch algorithm. make sure, ALL processes get stuck here until all ARE here
-  // look at video, implement pseudocode here
+
+  /* ASK CHRISTIAN: Do we loop through all to get any?*/
+
+  int any = 0;
+  int all_except_zero = 0;
+  ready[par_id] = 1;
+  while(ready[any] == 0);
+  ready[par_id] = 2;
+  if(par_id == 0) {
+    while(ready[any] != 2);
+    ready[all_except_zero] = 0;
+    ready[0] = 0;
+  } else {
+    while(ready[0] != 0);
+  }
 }
 //************************************************************************************************************************
+
+
+
 int main(int argc, char *argv[]) {
+
   int par_id = 0; // the parallel ID of this process
   int par_count = 1; // the amount of processes
   float *A,*B,*C; //matrices A,B and C
@@ -84,32 +124,64 @@ int main(int argc, char *argv[]) {
   if(par_id==0)
       {
       //TODO: init the shared memory for A,B,C, ready. shm_open with C_CREAT here! then ftruncate! then mmap
-      int size = 100 * sizeof(int);
-      int fd = shm_open("sharedMatrix", 0, O_RDWR | O_CREAT, 0777);
+      int size = 100 * sizeof(float);
+      int fd = shm_open("sharedMatrix", O_RDWR | O_CREAT, 0777);
       ftruncate(fd, size);
-      int *A = (int*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-      int *B = (int*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-      int *C = (int*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      A = (float*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      B = (float*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      C = (float*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      ready = (int*)mmap(NULL, sizeof(int) * 100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
       }
   else
       {
     //TODO: init the shared memory for A,B,C, ready. shm_open withOUT C_CREAT here! NO ftruncate! but yes to mmap
-      int size = 100 * sizeof(int);
+      int size = 100 * sizeof(float);
       int fd = shm_open("sharedMatrix", 0, O_RDWR, 0777);
-      int *A = (int*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-      int *B = (int*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-      int *C = (int*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      A = (float*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      B = (float*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      C = (float*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      ready = (int*)mmap(NULL, sizeof(int) * 100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
 
       sleep(2); //needed for initalizing synch
       }
 
 
+
+  // Debuggin
+  printf("par id: %d | par count: %d\n", par_id, par_count);
+  printf("Matrix A: \n");
+  printf("[");
+  for(int i = 0; i < MATRIX_DIMENSION_XY; i++) {
+    for(int j = 0; j < MATRIX_DIMENSION_XY; j++) {
+      set_matrix_elem(A, i, j, getRandomFloat(1.0, 9.0));
+      printf("%f ", A[i + j*MATRIX_DIMENSION_XY]);
+    }
+    printf("\n");
+  }
+  printf("]\n");
+  return 0;
+
+  // Debuggin
   synch(par_id,par_count,ready);
 
   if(par_id==0)
       {
     //TODO: initialize the matrices A and B
+
+    // initializing matrices a and b to random float
+
+      for(int i = 0; i < MATRIX_DIMENSION_XY; i++) {
+        for(int j = 0; j < MATRIX_DIMENSION_XY; j++) {
+          set_matrix_elem(A, i, j, getRandomFloat(1.0, 9.0));
+          set_matrix_elem(B, i, j, getRandomFloat(1.0, 9.0));
+
+        }
+
+      }
+
+
       }
 
   synch(par_id,par_count,ready);
@@ -134,11 +206,11 @@ int main(int argc, char *argv[]) {
   //lets test the result:
   float M[MATRIX_DIMENSION_XY * MATRIX_DIMENSION_XY];
   quadratic_matrix_multiplication(A, B, M);
-  if (quadratic_matrix_compare(C, M))
-  print("full points!\n");
-  else
-  print("buuug!\n");
-
+  if (quadratic_matrix_compare(C, M)) {
+    printf("full points!\n");
+  } else {
+    printf("buuug!\n");
+  }
 
   return 0;    
 }
