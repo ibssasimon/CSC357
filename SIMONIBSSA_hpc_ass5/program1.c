@@ -86,20 +86,26 @@ void quadratic_matrix_multiplication(float *A,float *B,float *C) {
 void synch(int par_id,int par_count,int *ready) {
   //TODO: synch algorithm. make sure, ALL processes get stuck here until all ARE here
 
-  /* ASK CHRISTIAN: Do we loop through all to get any?*/
+  int synchId = ready[par_count] + 1;
+  printf("synch id before: %d", par_id);
+  ready[par_id] = synchId;
 
-  int any = 0;
-  int all_except_zero = 0;
-  ready[par_id] = 1;
-  while(ready[any] == 0);
-  ready[par_id] = 2;
-  if(par_id == 0) {
-    while(ready[any] != 2);
-    ready[all_except_zero] = 0;
-    ready[0] = 0;
-  } else {
-    while(ready[0] != 0);
+  int myBreak = 0;
+  while(1) {
+    myBreak = 1;
+    for(int i = 0; i < par_count; i++) {
+      if(ready[i] < synchId) {
+        myBreak = 0;
+        break;
+      }
+    }
+    if(myBreak == 1) {
+      ready[par_count] = synchId;
+      break;
+    }
+
   }
+  printf("synch id after: %d", par_id);
 }
 //************************************************************************************************************************
 
@@ -130,7 +136,7 @@ int main(int argc, char *argv[]) {
       A = (float*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
       B = (float*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
       C = (float*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-      ready = (int*)mmap(NULL, sizeof(int) * 100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      ready = (int*)mmap(NULL, sizeof(int) * 11, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
       }
   else
@@ -141,7 +147,7 @@ int main(int argc, char *argv[]) {
       A = (float*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
       B = (float*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
       C = (float*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-      ready = (int*)mmap(NULL, sizeof(int) * 100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      ready = (int*)mmap(NULL, sizeof(int) * 11, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
 
 
       sleep(2); //needed for initalizing synch
@@ -151,19 +157,6 @@ int main(int argc, char *argv[]) {
 
   // Debuggin
   printf("par id: %d | par count: %d\n", par_id, par_count);
-  printf("Matrix A: \n");
-  printf("[");
-  for(int i = 0; i < MATRIX_DIMENSION_XY; i++) {
-    for(int j = 0; j < MATRIX_DIMENSION_XY; j++) {
-      set_matrix_elem(A, i, j, getRandomFloat(1.0, 9.0));
-      printf("%f ", A[i + j*MATRIX_DIMENSION_XY]);
-    }
-    printf("\n");
-  }
-  printf("]\n");
-  return 0;
-
-  // Debuggin
   synch(par_id,par_count,ready);
 
   if(par_id==0)
@@ -183,6 +176,30 @@ int main(int argc, char *argv[]) {
 
 
       }
+
+
+
+  /* Printing matrix */
+  printf("Matrix A: \n");
+  printf("[");
+  for(int i = 0; i < MATRIX_DIMENSION_XY; i++) {
+    for(int j = 0; j < MATRIX_DIMENSION_XY; j++) {
+      printf("%f ", A[i + j*MATRIX_DIMENSION_XY]);
+    }
+    printf("\n");
+  }
+  printf("]\n");
+  printf("\n");
+  printf("Matrix B: \n");
+  printf("[");
+  for(int i = 0; i < MATRIX_DIMENSION_XY; i++) {
+    for(int j = 0; j < MATRIX_DIMENSION_XY; j++) {
+      printf("%f ", B[i + j*MATRIX_DIMENSION_XY]);
+    }
+    printf("\n");
+  }
+  printf("]\n");
+
 
   synch(par_id,par_count,ready);
 

@@ -25,10 +25,11 @@ int main(int argc, char* argv[]) {
   for(int i = 0; i < atoi(argv[2]); i++) {
     if(fork() == 0) {
       sprintf(args[1], "%d", i);
-      execv("prog1", args);
-      printf("finished\n");
+      execv(argv[1], args);
+      printf("not successful\n");
+      return 0;
     }
   }
-
+  wait(0);
   return 0;
 }
