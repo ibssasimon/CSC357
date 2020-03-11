@@ -85,7 +85,7 @@ void quadratic_matrix_multiplication(float *A,float *B,float *C) {
 void quadratic_matrix_multiplication_parallel(float *A,float *B,float *C, int par_id, int par_count) {
 
   int work = 10 / par_count;
-  int start = par_id - work;
+  int start = par_id * work;
   int end = start + work;
 	//nullify the result matrix first
   for(int a = 0;a<MATRIX_DIMENSION_XY;a++)
@@ -93,7 +93,7 @@ void quadratic_matrix_multiplication_parallel(float *A,float *B,float *C, int pa
           C[a + b*MATRIX_DIMENSION_XY] = 0.0;
   //multiply
   for(int a = 0;a<MATRIX_DIMENSION_XY;a++) // over all cols a
-      for(int b = 0;b<MATRIX_DIMENSION_XY;b++) // over all rows b
+      for(int b = start;b<end;b++) // over all rows b
           for(int c = 0;c<MATRIX_DIMENSION_XY;c++) // over all rows/cols left
               {
                   C[a + b*MATRIX_DIMENSION_XY] += A[c + b*MATRIX_DIMENSION_XY] * B[a + c*MATRIX_DIMENSION_XY]; 
@@ -241,7 +241,7 @@ int main(int argc, char *argv[]) {
   if(par_id==0)
       quadratic_matrix_print(C);
   synch(par_id, par_count, ready);
-  
+
   printf("]\n");
   close (fd[0]);
   close (fd[1]);
