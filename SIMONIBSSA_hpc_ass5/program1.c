@@ -237,11 +237,12 @@ int main(int argc, char *argv[]) {
     
   synch(par_id,par_count,ready);
 
-  printf("matrix c: \n");
+  printf("matrix c: [");
   if(par_id==0)
       quadratic_matrix_print(C);
   synch(par_id, par_count, ready);
-
+  
+  printf("]\n");
   close (fd[0]);
   close (fd[1]);
   close (fd[2]);

@@ -8,7 +8,7 @@ int main(int argc, char* argv[]) {
   printf("program 2, last 357 assignment... yippee!\n");
 
   // args* definition
-  char* args[4] = 0;
+  char* args[4];
 
   // mallocing space for each command line arg
   args[0] = malloc(100);
