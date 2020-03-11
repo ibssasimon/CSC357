@@ -5,7 +5,7 @@
 
 
 int main(int argc, char* argv[]) {
-  printf("program 2, last 357 assignment... yippee!\n");
+  printf("Assignment 5, last 357 assignment... yippee!\n");
 
   // args* definition
   char* args[4];

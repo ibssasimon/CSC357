@@ -88,12 +88,12 @@ void quadratic_matrix_multiplication_parallel(float *A,float *B,float *C, int pa
   int start = par_id * work;
   int end = start + work;
 	//nullify the result matrix first
-  for(int a = 0;a<MATRIX_DIMENSION_XY;a++)
-      for(int b = 0;b<MATRIX_DIMENSION_XY;b++)
+  for(int a = start;a<end;a++)
+      for(int b = start;b<end;b++)
           C[a + b*MATRIX_DIMENSION_XY] = 0.0;
   //multiply
-  for(int a = 0;a<MATRIX_DIMENSION_XY;a++) // over all cols a
-      for(int b = start;b<end;b++) // over all rows b
+  for(int a = start;a<end;a++) // over all cols a
+      for(int b = 0;b<MATRIX_DIMENSION_XY;b++) // over all rows b
           for(int c = 0;c<MATRIX_DIMENSION_XY;c++) // over all rows/cols left
               {
                   C[a + b*MATRIX_DIMENSION_XY] += A[c + b*MATRIX_DIMENSION_XY] * B[a + c*MATRIX_DIMENSION_XY]; 
@@ -131,6 +131,8 @@ void synch(int par_id,int par_count,int *ready) {
 int main(int argc, char *argv[]) {
   // to guarantee random floats
   srand(time(0));
+  clock_t start, end;
+  double cpu_time_used;
 
   int par_id = 0; // the parallel ID of this process
   int par_count = 1; // the amount of processes
@@ -233,15 +235,17 @@ int main(int argc, char *argv[]) {
 
   synch(par_id,par_count,ready);
 
+  start = clock();
   quadratic_matrix_multiplication_parallel(A, B, C, par_id, par_count);
-    
-  synch(par_id,par_count,ready);
+    synch(par_id,par_count,ready);
 
   printf("matrix c: [");
   if(par_id==0)
       quadratic_matrix_print(C);
   synch(par_id, par_count, ready);
 
+
+  end = clock();
   printf("]\n");
   close (fd[0]);
   close (fd[1]);
@@ -252,6 +256,8 @@ int main(int argc, char *argv[]) {
   shm_unlink("matrixC");
   shm_unlink("synchobject");
 
+  
+
   //lets test the result:
   float M[MATRIX_DIMENSION_XY * MATRIX_DIMENSION_XY];
   quadratic_matrix_multiplication(A, B, M);
@@ -260,6 +266,9 @@ int main(int argc, char *argv[]) {
   } else {
     printf("buuug!\n");
   }
+
+  cpu_time_used = ((double) (end - start));
+  printf("multiplication took %.2f nanoseconds\n", cpu_time_used);
 
   return 0;    
 }
