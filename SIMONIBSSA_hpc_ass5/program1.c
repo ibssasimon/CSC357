@@ -83,13 +83,15 @@ void quadratic_matrix_multiplication(float *A,float *B,float *C) {
 
 // multiply two matrices
 void quadratic_matrix_multiplication_parallel(float *A,float *B,float *C, int par_id, int par_count) {
-
+  // I have a hunch that I am not looping correctly in the parallel function
+  // Or that the forking is not working in program2
+  // Whatever it is, it is r
   int work = 10 / par_count;
   int start = par_id * work;
   int end = start + work;
 	//nullify the result matrix first
   for(int a = start;a<end;a++)
-      for(int b = start;b<end;b++)
+	  for (int b = 0; b < MATRIX_DIMENSION_XY; b++)
           C[a + b*MATRIX_DIMENSION_XY] = 0.0;
   //multiply
   for(int a = start;a<end;a++) // over all cols a
@@ -138,25 +140,29 @@ int main(int argc, char *argv[]) {
   int par_count = 1; // the amount of processes
   float *A,*B,*C; //matrices A,B and C
   int *ready; //needed for synch
-  if(argc!=3){printf("no shared\n");}
+  if(argc!=3){}
   else
       {
       par_id= atoi(argv[1]);
       par_count= atoi(argv[2]);
     // strcpy(shared_mem_matrix,argv[3]);
       }
-  if(par_count==1){printf("only one process\n");}
+  if(par_count==1){}
 
   int fd[4];
+  int aMatrix;
+  int bMatrix;
+  int cMatrix;
+  int synchObject;
   if(par_id==0)
       {
       //TODO: init the shared memory for A,B,C, ready. shm_open with C_CREAT here! then ftruncate! then mmap
       int size = 100 * sizeof(float);
 
-      int aMatrix = shm_open("matrixA", O_RDWR | O_CREAT, 0777);
-      int bMatrix = shm_open("matrixB", O_RDWR | O_CREAT, 0777);
-      int cMatrix = shm_open("matrixC", O_RDWR | O_CREAT, 0777);
-      int synchObject = shm_open("synchobject", O_RDWR | O_CREAT, 0777);
+      aMatrix = shm_open("matrixA", O_RDWR | O_CREAT, 0777);
+      bMatrix = shm_open("matrixB", O_RDWR | O_CREAT, 0777);
+      cMatrix = shm_open("matrixC", O_RDWR | O_CREAT, 0777);
+      synchObject = shm_open("synchobject", O_RDWR | O_CREAT, 0777);
 
 
       ftruncate(aMatrix, size);
@@ -176,10 +182,10 @@ int main(int argc, char *argv[]) {
     //TODO: init the shared memory for A,B,C, ready. shm_open withOUT C_CREAT here! NO ftruncate! but yes to mmap
       int size = 100 * sizeof(float);
 
-      int aMatrix = shm_open("matrixA", O_RDWR, 0777);
-      int bMatrix = shm_open("matrixB", O_RDWR, 0777);
-      int cMatrix = shm_open("matrixC", O_RDWR, 0777);
-      int synchObject = shm_open("synchobject", O_RDWR, 0777);
+      aMatrix = shm_open("matrixA", O_RDWR, 0777);
+      bMatrix = shm_open("matrixB", O_RDWR, 0777);
+      cMatrix = shm_open("matrixC", O_RDWR, 0777);
+      synchObject = shm_open("synchobject", O_RDWR, 0777);
 
 
       A = (float*)mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, aMatrix, 0);
@@ -194,81 +200,70 @@ int main(int argc, char *argv[]) {
 
 
   // Debuggin
-  printf("par id: %d | par count: %d\n", par_id, par_count);
   synch(par_id,par_count,ready);
-
   if(par_id==0)
       {
     //TODO: initialize the matrices A and B
     // initializing matrices a and b to random float
-      for(int i = 0; i < MATRIX_DIMENSION_XY; i++) {
-        for(int j = 0; j < MATRIX_DIMENSION_XY; j++) {
-          set_matrix_elem(A, i, j, getRandomFloat(1.0, 9.0));
-          set_matrix_elem(B, i, j, getRandomFloat(1.0, 9.0));
-        }
+		  for(int i = 0; i < MATRIX_DIMENSION_XY; i++) {
+			for(int j = 0; j < MATRIX_DIMENSION_XY; j++) {
+			  set_matrix_elem(A, i, j, getRandomFloat(1.0, 9.0));
+			  set_matrix_elem(B, i, j, getRandomFloat(1.0, 9.0));
+			}
+		  }
+	  quadratic_matrix_print(A);
+	  quadratic_matrix_print(B);
       }
-      }
-
-
-
-  /* Printing matrix */
-  printf("Matrix A: \n");
-  printf("[");
-  for(int i = 0; i < MATRIX_DIMENSION_XY; i++) {
-    for(int j = 0; j < MATRIX_DIMENSION_XY; j++) {
-      printf("%.2f ", A[i + j*MATRIX_DIMENSION_XY]);
-    }
-    printf("\n");
-  }
-  printf("]\n");
-  printf("\n");
-  printf("Matrix B: \n");
-  printf("[");
-  for(int i = 0; i < MATRIX_DIMENSION_XY; i++) {
-    for(int j = 0; j < MATRIX_DIMENSION_XY; j++) {
-      printf("%.2f ", B[i + j*MATRIX_DIMENSION_XY]);
-    }
-    printf("\n");
-  }
-  printf("]\n");
 
 
   synch(par_id,par_count,ready);
 
   start = clock();
   quadratic_matrix_multiplication_parallel(A, B, C, par_id, par_count);
-    synch(par_id,par_count,ready);
+  synch(par_id,par_count,ready);
+  end = clock();
 
-  printf("matrix c: [");
+
   if(par_id==0)
       quadratic_matrix_print(C);
+
   synch(par_id, par_count, ready);
 
 
-  end = clock();
-  printf("]\n");
-  close (fd[0]);
-  close (fd[1]);
-  close (fd[2]);
-  close (fd[3]);
-  shm_unlink("matrixA");
-  shm_unlink("matrixB");
-  shm_unlink("matrixC");
-  shm_unlink("synchobject");
 
   
 
   //lets test the result:
-  float M[MATRIX_DIMENSION_XY * MATRIX_DIMENSION_XY];
-  quadratic_matrix_multiplication(A, B, M);
-  if (quadratic_matrix_compare(C, M)) {
-    printf("full points!\n");
-  } else {
-    printf("buuug!\n");
+  if (par_id == 0)
+	  {
+	  float M[MATRIX_DIMENSION_XY * MATRIX_DIMENSION_XY];
+	  quadratic_matrix_multiplication(A, B, M);
+	  if (quadratic_matrix_compare(C, M)) {
+		  printf("full points!\n");
+		  }
+	  else {
+		  printf("buuug!\n");
+		  }
+	  }
+  cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
+  if(par_id == 0) {
+    printf("multiplication took %.2e seconds\n", cpu_time_used);
   }
 
-  cpu_time_used = ((double) (end - start));
-  printf("multiplication took %.2f nanoseconds\n", cpu_time_used);
+
+  close(aMatrix);
+  close(bMatrix);
+  close(cMatrix);
+  close(synchObject);
+  shm_unlink("matrixA");
+  shm_unlink("matrixB");
+  shm_unlink("matrixC");
+  shm_unlink("synchobject");
+  munmap(A, sizeof(int) * 100);
+  munmap(B, sizeof(int) * 100);
+  munmap(C, sizeof(int) * 100);
+  munmap(ready, sizeof(int) * 11);
+
 
   return 0;    
 }
