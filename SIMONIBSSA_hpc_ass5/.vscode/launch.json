@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+      {
+          "preLaunchTask": "gcc compile",
+          "type": "lldb",
+          "request": "launch",
+          "name": "gcc compile and debug",
+          "program": "${workspaceFolder}/a.out",
+          "args": [],
+          "cwd": "${workspaceFolder}"
+      }
+  ]
+}

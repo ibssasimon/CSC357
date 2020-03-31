@@ -19,16 +19,11 @@ void close_file()
 }
 
 
-/* TODO
-  - Study this code
-  - You came close but look at it deeply to understand what you are missing
-
-*/
 int main() 
 {
     // task 2
     char inputBuffer[1000];
-    memset(inputBuffer, 0, 100);
+    inputBuffer[0] = 0;
     int* childPID = (int*)mmap(NULL, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
     pipe(fd);
     signal(SIGUSR1,close_file);
@@ -52,7 +47,7 @@ int main()
             //printf("Child PID: %d\n",*childPID);
             char change[1000];
             
-            // read from pipe - why this?
+            // read from pipe
             write(fd[1], "\0", 1);
             int bytesRead = read(fd[0], change, 1000);
             // if something into pipe write into file
